@@ -5,6 +5,7 @@ A comprehensive food delivery management system built with Spring Boot, featurin
 ## 🚀 Features
 
 ### Customer Features
+
 - 🔐 User registration and login with JWT authentication
 - 🍽️ Browse restaurants and menu items
 - 🛒 Add items to cart and place orders
@@ -13,6 +14,7 @@ A comprehensive food delivery management system built with Spring Boot, featurin
 - 💳 Payment processing
 
 ### Admin Features
+
 - 👥 Customer management
 - 🏪 Restaurant management
 - 📋 Menu item management
@@ -23,6 +25,7 @@ A comprehensive food delivery management system built with Spring Boot, featurin
 ## 🛠️ Technology Stack
 
 ### Backend
+
 - **Framework**: Spring Boot 4.0.3
 - **Language**: Java 17
 - **Database**: PostgreSQL
@@ -31,6 +34,7 @@ A comprehensive food delivery management system built with Spring Boot, featurin
 - **Build Tool**: Maven
 
 ### Frontend
+
 - **Framework**: React 18
 - **Styling**: Tailwind CSS
 - **State Management**: React Context API
@@ -49,12 +53,14 @@ A comprehensive food delivery management system built with Spring Boot, featurin
 ### Backend Setup
 
 1. **Clone the repository**
+
 ```bash
 git clone https://github.com/your-username/spring-boot-final-project.git
 cd spring-boot-final-project
 ```
 
 2. **Database Setup**
+
 ```sql
 -- Create database
 CREATE DATABASE food_delivery;
@@ -65,19 +71,43 @@ GRANT ALL PRIVILEGES ON DATABASE food_delivery TO food_delivery_user;
 ```
 
 3. **Configure Database**
-Update `src/main/resources/application.properties`:
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/food_delivery
-spring.datasource.username=your_username
-spring.datasource.password=your_password
-spring.datasource.driver-class-name=org.postgresql.Driver
+   **⚠️ IMPORTANT: Never commit sensitive credentials to GitHub!**
 
-# JWT Configuration
-jwt.secret=mySecretKey
-jwt.expiration=86400
+Option 1: **Environment Variables (Recommended for Production)**
+
+```bash
+# Create .env file (already in .gitignore)
+cp .env.example .env
+# Edit .env with your actual credentials
+```
+
+Option 2: **Development Profile**
+
+```bash
+# Use application-dev.properties for local development
+# This file is already in .gitignore
+```
+
+Option 3: **System Environment Variables**
+
+```bash
+export DATABASE_URL=jdbc:postgresql://localhost:5432/FoodSecDB
+export DATABASE_USERNAME=postgres
+export DATABASE_PASSWORD=your_password
+export JWT_SECRET=your_jwt_secret
+```
+
+The main `application.properties` uses environment variable placeholders:
+
+```properties
+spring.datasource.url=${DATABASE_URL:jdbc:postgresql://localhost:5432/FoodSecDB}
+spring.datasource.username=${DATABASE_USERNAME:postgres}
+spring.datasource.password=${DATABASE_PASSWORD:your_password_here}
+jwt.secret=${JWT_SECRET:mySecretKeyForJWT123456789012345678901234567890}
 ```
 
 4. **Run the Application**
+
 ```bash
 # Using Maven
 mvn spring-boot:run
@@ -91,16 +121,19 @@ The backend will start on `http://localhost:8080`
 ### Frontend Setup
 
 1. **Navigate to frontend directory**
+
 ```bash
 cd frontend
 ```
 
 2. **Install dependencies**
+
 ```bash
 npm install
 ```
 
 3. **Start the development server**
+
 ```bash
 npm start
 ```
@@ -119,6 +152,7 @@ The application uses the following main entities:
 - **Payment**: Payment transactions
 
 ### Entity Relationships
+
 ```
 Customer (1) ←→ (N) Order (1) ←→ (N) OrderItem (N) ←→ (1) MenuItem
 Order (1) ←→ (1) Payment
@@ -128,12 +162,14 @@ Restaurant (1) ←→ (N) MenuItem
 ## 🔐 Security
 
 ### Authentication
+
 - JWT-based authentication
 - Role-based access control (CUSTOMER/ADMIN)
 - Password encryption with BCrypt
 - Token expiration handling
 
 ### API Security
+
 - CORS configuration for frontend integration
 - Method-level security with @PreAuthorize
 - Protected endpoints based on user roles
@@ -141,16 +177,19 @@ Restaurant (1) ←→ (N) MenuItem
 ## 📚 API Documentation
 
 ### Authentication Endpoints
+
 - `POST /api/auth/login` - User login
 - `POST /api/auth/register` - User registration
 
 ### Customer Endpoints
+
 - `GET /api/restaurants` - Get all restaurants
 - `GET /api/menuitems` - Get menu items
 - `POST /api/orders` - Place order
 - `GET /api/orders` - Get user orders
 
 ### Admin Endpoints
+
 - `GET /api/admin/customers` - Manage customers
 - `GET /api/admin/restaurants` - Manage restaurants
 - `GET /api/admin/orders` - Manage orders
@@ -178,6 +217,7 @@ src/
 ## 🧪 Testing
 
 Run the test suite:
+
 ```bash
 mvn test
 ```
@@ -185,11 +225,14 @@ mvn test
 ## 🔧 Configuration
 
 ### Environment Variables
+
 - `jwt.secret`: JWT signing secret
 - `jwt.expiration`: Token expiration time in seconds
 
 ### Database Configuration
+
 Configure in `application.properties`:
+
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/food_delivery
 spring.datasource.username=your_username
@@ -201,6 +244,7 @@ spring.jpa.show-sql=true
 ## 🚀 Deployment
 
 ### Docker Deployment
+
 ```bash
 # Build the application
 mvn clean package
@@ -211,6 +255,7 @@ docker run -p 8080:8080 food-delivery-api
 ```
 
 ### Production Considerations
+
 - Use environment variables for sensitive data
 - Configure database connection pooling
 - Enable HTTPS in production
@@ -219,6 +264,7 @@ docker run -p 8080:8080 food-delivery-api
 ## 📈 Order Status Flow
 
 Orders follow this status progression:
+
 ```
 PENDING_PAYMENT → PLACED → CONFIRMED → PREPARING → DELIVERED
                      ↓
@@ -247,6 +293,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Contact
 
 For any queries or support, please reach out to:
+
 - **Your Name**: [your-email@example.com]
 - **GitHub**: [@your-username]
 
