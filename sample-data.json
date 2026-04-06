@@ -1,0 +1,364 @@
+{
+  "title": "Sample Data for Food Delivery Platform",
+  "description": "Sample JSON data for testing all APIs",
+  "sample_customers": [
+    {
+      "customerId": 1,
+      "customerName": "John Doe",
+      "emailId": "john.doe@example.com",
+      "contactNumber": 9876543210,
+      "address": "123 Main St, New York, NY 10001",
+      "username": "john.doe",
+      "password": "password123",
+      "role": "CUSTOMER"
+    },
+    {
+      "customerId": 2,
+      "customerName": "Jane Smith",
+      "emailId": "jane.smith@example.com",
+      "contactNumber": 9876543211,
+      "address": "456 Oak Ave, Los Angeles, CA 90001",
+      "username": "jane.smith",
+      "password": "password123",
+      "role": "CUSTOMER"
+    },
+    {
+      "customerId": 3,
+      "customerName": "Admin User",
+      "emailId": "admin@fooddelivery.com",
+      "contactNumber": 9876543212,
+      "address": "789 Admin St, San Francisco, CA 94102",
+      "username": "admin",
+      "password": "admin123",
+      "role": "ADMIN"
+    }
+  ],
+  "sample_restaurants": [
+    {
+      "restaurantId": 1,
+      "restaurantName": "Pizza Palace",
+      "location": "123 Pizza Lane, New York, NY 10001"
+    },
+    {
+      "restaurantId": 2,
+      "restaurantName": "Burger Barn",
+      "location": "456 Burger Blvd, Los Angeles, CA 90001"
+    },
+    {
+      "restaurantId": 3,
+      "restaurantName": "Sushi Station",
+      "location": "789 Sushi Street, San Francisco, CA 94102"
+    },
+    {
+      "restaurantId": 4,
+      "restaurantName": "Taco Town",
+      "location": "321 Taco Terrace, Austin, TX 73301"
+    },
+    {
+      "restaurantId": 5,
+      "restaurantName": "Pasta Paradise",
+      "location": "654 Pasta Place, Chicago, IL 60601"
+    }
+  ],
+  "sample_menu_items": [
+    {
+      "itemId": 1,
+      "itemName": "Margherita Pizza",
+      "price": 12.99,
+      "availability": true,
+      "restaurant": {
+        "restaurantId": 1,
+        "restaurantName": "Pizza Palace"
+      }
+    },
+    {
+      "itemId": 2,
+      "itemName": "Pepperoni Pizza",
+      "price": 14.99,
+      "availability": true,
+      "restaurant": {
+        "restaurantId": 1,
+        "restaurantName": "Pizza Palace"
+      }
+    },
+    {
+      "itemId": 3,
+      "itemName": "Classic Burger",
+      "price": 8.99,
+      "availability": true,
+      "restaurant": {
+        "restaurantId": 2,
+        "restaurantName": "Burger Barn"
+      }
+    },
+    {
+      "itemId": 4,
+      "itemName": "Cheeseburger",
+      "price": 9.99,
+      "availability": true,
+      "restaurant": {
+        "restaurantId": 2,
+        "restaurantName": "Burger Barn"
+      }
+    },
+    {
+      "itemId": 5,
+      "itemName": "California Roll",
+      "price": 10.99,
+      "availability": true,
+      "restaurant": {
+        "restaurantId": 3,
+        "restaurantName": "Sushi Station"
+      }
+    },
+    {
+      "itemId": 6,
+      "itemName": "Spicy Tuna Roll",
+      "price": 12.99,
+      "availability": true,
+      "restaurant": {
+        "restaurantId": 3,
+        "restaurantName": "Sushi Station"
+      }
+    },
+    {
+      "itemId": 7,
+      "itemName": "Beef Taco",
+      "price": 7.99,
+      "availability": true,
+      "restaurant": {
+        "restaurantId": 4,
+        "restaurantName": "Taco Town"
+      }
+    },
+    {
+      "itemId": 8,
+      "itemName": "Chicken Taco",
+      "price": 6.99,
+      "availability": true,
+      "restaurant": {
+        "restaurantId": 4,
+        "restaurantName": "Taco Town"
+      }
+    },
+    {
+      "itemId": 9,
+      "itemName": "Spaghetti Carbonara",
+      "price": 13.99,
+      "availability": true,
+      "restaurant": {
+        "restaurantId": 5,
+        "restaurantName": "Pasta Paradise"
+      }
+    },
+    {
+      "itemId": 10,
+      "itemName": "Fettuccine Alfredo",
+      "price": 12.99,
+      "availability": true,
+      "restaurant": {
+        "restaurantId": 5,
+        "restaurantName": "Pasta Paradise"
+      }
+    }
+  ],
+  "sample_orders": [
+    {
+      "orderId": 1,
+      "orderDateTime": "2024-03-28T10:30:00",
+      "status": "PLACED",
+      "totalAmount": 27.98,
+      "customer": {
+        "customerId": 1,
+        "customerName": "John Doe"
+      },
+      "payment": {
+        "paymentId": 1,
+        "paymentMethod": "CARD",
+        "paymentStatus": "SUCCESS",
+        "amount": 27.98
+      },
+      "orderItems": [
+        {
+          "orderItemId": 1,
+          "quantity": 1,
+          "subTotal": 12.99,
+          "menuItem": {
+            "itemId": 1,
+            "itemName": "Margherita Pizza",
+            "price": 12.99
+          }
+        },
+        {
+          "orderItemId": 2,
+          "quantity": 1,
+          "subTotal": 14.99,
+          "menuItem": {
+            "itemId": 2,
+            "itemName": "Pepperoni Pizza",
+            "price": 14.99
+          }
+        }
+      ]
+    },
+    {
+      "orderId": 2,
+      "orderDateTime": "2024-03-28T11:45:00",
+      "status": "CONFIRMED",
+      "totalAmount": 18.98,
+      "customer": {
+        "customerId": 2,
+        "customerName": "Jane Smith"
+      },
+      "payment": {
+        "paymentId": 2,
+        "paymentMethod": "UPI",
+        "paymentStatus": "SUCCESS",
+        "amount": 18.98
+      },
+      "orderItems": [
+        {
+          "orderItemId": 3,
+          "quantity": 2,
+          "subTotal": 17.98,
+          "menuItem": {
+            "itemId": 3,
+            "itemName": "Classic Burger",
+            "price": 8.99
+          }
+        }
+      ]
+    },
+    {
+      "orderId": 3,
+      "orderDateTime": "2024-03-28T12:15:00",
+      "status": "DELIVERED",
+      "totalAmount": 22.98,
+      "customer": {
+        "customerId": 1,
+        "customerName": "John Doe"
+      },
+      "payment": {
+        "paymentId": 3,
+        "paymentMethod": "NET_BANKING",
+        "paymentStatus": "SUCCESS",
+        "amount": 22.98
+      },
+      "orderItems": [
+        {
+          "orderItemId": 4,
+          "quantity": 1,
+          "subTotal": 10.99,
+          "menuItem": {
+            "itemId": 5,
+            "itemName": "California Roll",
+            "price": 10.99
+          }
+        },
+        {
+          "orderItemId": 5,
+          "quantity": 1,
+          "subTotal": 12.99,
+          "menuItem": {
+            "itemId": 6,
+            "itemName": "Spicy Tuna Roll",
+            "price": 12.99
+          }
+        }
+      ]
+    }
+  ],
+  "sample_payments": [
+    {
+      "paymentId": 1,
+      "paymentMethod": "CARD",
+      "paymentStatus": "SUCCESS",
+      "amount": 27.98,
+      "orderId": 1
+    },
+    {
+      "paymentId": 2,
+      "paymentMethod": "UPI",
+      "paymentStatus": "SUCCESS",
+      "amount": 18.98,
+      "orderId": 2
+    },
+    {
+      "paymentId": 3,
+      "paymentMethod": "NET_BANKING",
+      "paymentStatus": "SUCCESS",
+      "amount": 22.98,
+      "orderId": 3
+    },
+    {
+      "paymentId": 4,
+      "paymentMethod": "CASH",
+      "paymentStatus": "PENDING",
+      "amount": 15.98,
+      "orderId": 4
+    },
+    {
+      "paymentId": 5,
+      "paymentMethod": "CARD",
+      "paymentStatus": "FAILED",
+      "amount": 19.98,
+      "orderId": 5
+    }
+  ],
+  "test_scenarios": {
+    "customer_registration": {
+      "endpoint": "POST /api/admin/customers",
+      "data": {
+        "customerName": "Test Customer",
+        "emailId": "test@example.com",
+        "contactNumber": 9876543299,
+        "address": "123 Test St, Test City, TC 12345",
+        "username": "test.user",
+        "password": "test123",
+        "role": "CUSTOMER"
+      }
+    },
+    "restaurant_creation": {
+      "endpoint": "POST /api/admin/restaurants",
+      "data": {
+        "restaurantName": "Test Restaurant",
+        "location": "456 Test Ave, Test City, TC 12345"
+      }
+    },
+    "menu_item_creation": {
+      "endpoint": "POST /api/admin/menuitems",
+      "data": {
+        "itemName": "Test Menu Item",
+        "price": 9.99,
+        "availability": true,
+        "restaurant": {
+          "restaurantId": 1
+        }
+      }
+    },
+    "order_placement": {
+      "endpoint": "POST /api/orders",
+      "data": {
+        "orderItems": [
+          {
+            "menuItem": {
+              "itemId": 1
+            },
+            "quantity": 2
+          }
+        ],
+        "payment": {
+          "paymentMethod": "CARD",
+          "paymentStatus": "PENDING"
+        }
+      }
+    },
+    "login": {
+      "endpoint": "POST /api/auth/login",
+      "data": {
+        "username": "john.doe",
+        "password": "password123"
+      }
+    }
+  }
+}

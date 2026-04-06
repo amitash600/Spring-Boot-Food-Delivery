@@ -1,0 +1,951 @@
+{
+  "title": "Complete API Examples - Food Delivery Platform",
+  "description": "JSON examples for all API endpoints for Customer and Admin roles",
+  "authentication": {
+    "note": "All protected endpoints require JWT token in Authorization header: Bearer <token>",
+    "login_endpoint": "POST /api/auth/login",
+    "login_example": {
+      "username": "customer@example.com",
+      "password": "password123"
+    }
+  },
+  "customer_apis": {
+    "customer_management": {
+      "profile": {
+        "endpoint": "GET /api/customer/profile",
+        "description": "Get current customer profile",
+        "response": {
+          "statusCode": 200,
+          "message": "Profile fetched successfully",
+          "data": {
+            "customerId": 1,
+            "customerName": "John Doe",
+            "emailId": "john.doe@example.com",
+            "contactNumber": 9876543210,
+            "address": "123 Main St, City",
+            "username": "john.doe"
+          }
+        }
+      },
+      "update_profile": {
+        "endpoint": "PUT /api/customer/profile",
+        "description": "Update customer profile",
+        "request": {
+          "customerName": "John Smith",
+          "address": "456 New Ave, City",
+          "contactNumber": 9876543211
+        },
+        "response": {
+          "statusCode": 200,
+          "message": "Profile updated successfully",
+          "data": {
+            "customerId": 1,
+            "customerName": "John Smith",
+            "emailId": "john.doe@example.com",
+            "contactNumber": 9876543211,
+            "address": "456 New Ave, City",
+            "username": "john.doe"
+          }
+        }
+      }
+    },
+    "restaurant_browsing": {
+      "all_restaurants": {
+        "endpoint": "GET /api/restaurants",
+        "description": "Get all restaurants",
+        "response": {
+          "statusCode": 200,
+          "message": "Restaurants fetched successfully",
+          "data": [
+            {
+              "restaurantId": 1,
+              "restaurantName": "Pizza Palace",
+              "location": "New York"
+            },
+            {
+              "restaurantId": 2,
+              "restaurantName": "Burger Barn",
+              "location": "Los Angeles"
+            }
+          ]
+        }
+      },
+      "restaurant_by_id": {
+        "endpoint": "GET /api/restaurants/{restaurantId}",
+        "description": "Get restaurant by ID",
+        "response": {
+          "statusCode": 200,
+          "message": "Restaurant fetched successfully",
+          "data": {
+            "restaurantId": 1,
+            "restaurantName": "Pizza Palace",
+            "location": "New York"
+          }
+        }
+      }
+    },
+    "menu_browsing": {
+      "all_menu_items": {
+        "endpoint": "GET /api/menuitems",
+        "description": "Get all menu items",
+        "response": {
+          "statusCode": 200,
+          "message": "Menu items fetched successfully",
+          "data": [
+            {
+              "itemId": 1,
+              "itemName": "Margherita Pizza",
+              "price": 12.99,
+              "availability": true,
+              "restaurant": {
+                "restaurantId": 1,
+                "restaurantName": "Pizza Palace"
+              }
+            }
+          ]
+        }
+      },
+      "menu_items_by_restaurant": {
+        "endpoint": "GET /api/menuitems/restaurant/{restaurantId}",
+        "description": "Get menu items by restaurant",
+        "response": {
+          "statusCode": 200,
+          "message": "Menu items fetched successfully",
+          "data": [
+            {
+              "itemId": 1,
+              "itemName": "Margherita Pizza",
+              "price": 12.99,
+              "availability": true,
+              "restaurant": {
+                "restaurantId": 1,
+                "restaurantName": "Pizza Palace"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "order_management": {
+      "place_order": {
+        "endpoint": "POST /api/orders",
+        "description": "Place a new order",
+        "request": {
+          "orderItems": [
+            {
+              "menuItem": {
+                "itemId": 1
+              },
+              "quantity": 2
+            },
+            {
+              "menuItem": {
+                "itemId": 2
+              },
+              "quantity": 1
+            }
+          ],
+          "payment": {
+            "paymentMethod": "CARD",
+            "paymentStatus": "PENDING"
+          }
+        },
+        "response": {
+          "statusCode": 201,
+          "message": "Order placed successfully",
+          "data": {
+            "orderId": 1,
+            "orderDateTime": "2024-03-28T10:30:00",
+            "status": "PLACED",
+            "totalAmount": 38.97,
+            "customer": {
+              "customerId": 1,
+              "customerName": "John Doe"
+            },
+            "payment": {
+              "paymentId": 1,
+              "paymentMethod": "CARD",
+              "paymentStatus": "PENDING",
+              "amount": 38.97
+            },
+            "orderItems": [
+              {
+                "orderItemId": 1,
+                "itemName": "Margherita Pizza",
+                "price": 12.99,
+                "quantity": 2,
+                "subTotal": 25.98
+              }
+            ]
+          }
+        }
+      },
+      "my_orders": {
+        "endpoint": "GET /api/orders",
+        "description": "Get my orders",
+        "response": {
+          "statusCode": 200,
+          "message": "Orders fetched successfully",
+          "data": [
+            {
+              "orderId": 1,
+              "orderDateTime": "2024-03-28T10:30:00",
+              "status": "PLACED",
+              "totalAmount": 38.97
+            }
+          ]
+        }
+      },
+      "order_by_id": {
+        "endpoint": "GET /api/orders/{orderId}",
+        "description": "Get order by ID",
+        "response": {
+          "statusCode": 200,
+          "message": "Order fetched successfully",
+          "data": {
+            "orderId": 1,
+            "orderDateTime": "2024-03-28T10:30:00",
+            "status": "PLACED",
+            "totalAmount": 38.97,
+            "customer": {
+              "customerId": 1,
+              "customerName": "John Doe"
+            },
+            "payment": {
+              "paymentId": 1,
+              "paymentMethod": "CARD",
+              "paymentStatus": "PENDING"
+            },
+            "orderItems": [
+              {
+                "orderItemId": 1,
+                "itemName": "Margherita Pizza",
+                "price": 12.99,
+                "quantity": 2,
+                "subTotal": 25.98
+              }
+            ]
+          }
+        }
+      },
+      "cancel_order": {
+        "endpoint": "PUT /api/orders/{orderId}/cancel",
+        "description": "Cancel my order",
+        "response": {
+          "statusCode": 200,
+          "message": "Order cancelled successfully",
+          "data": {
+            "orderId": 1,
+            "status": "CANCELLED"
+          }
+        }
+      }
+    },
+    "order_item_management": {
+      "order_items": {
+        "endpoint": "GET /api/orders/{orderId}/items",
+        "description": "Get my order items",
+        "response": {
+          "statusCode": 200,
+          "message": "Order items fetched successfully",
+          "data": [
+            {
+              "orderItemId": 1,
+              "quantity": 2,
+              "subTotal": 25.98,
+              "menuItem": {
+                "itemId": 1,
+                "itemName": "Margherita Pizza",
+                "price": 12.99
+              }
+            }
+          ]
+        }
+      },
+      "add_item": {
+        "endpoint": "POST /api/orders/{orderId}/items",
+        "description": "Add item to order",
+        "request": {
+          "menuItemId": 2,
+          "quantity": 1
+        },
+        "response": {
+          "statusCode": 201,
+          "message": "Item added to order successfully",
+          "data": {
+            "orderItemId": 2,
+            "quantity": 1,
+            "subTotal": 15.99
+          }
+        }
+      },
+      "update_quantity": {
+        "endpoint": "PUT /api/orders/items/{orderItemId}",
+        "description": "Update item quantity",
+        "request": {
+          "quantity": 3
+        },
+        "response": {
+          "statusCode": 200,
+          "message": "Item quantity updated successfully",
+          "data": {
+            "orderItemId": 1,
+            "quantity": 3,
+            "subTotal": 38.97
+          }
+        }
+      },
+      "remove_item": {
+        "endpoint": "DELETE /api/orders/items/{orderItemId}",
+        "description": "Remove item from order",
+        "response": {
+          "statusCode": 200,
+          "message": "Item removed from order successfully",
+          "data": "Deleted"
+        }
+      }
+    },
+    "payment_management": {
+      "payment_by_id": {
+        "endpoint": "GET /api/payments/{paymentId}",
+        "description": "Get payment by ID",
+        "response": {
+          "statusCode": 200,
+          "message": "Payment fetched successfully",
+          "data": {
+            "paymentId": 1,
+            "paymentMethod": "CARD",
+            "paymentStatus": "SUCCESS",
+            "amount": 38.97,
+            "orderId": 1
+          }
+        }
+      }
+    }
+  },
+  "admin_apis": {
+    "customer_management": {
+      "all_customers": {
+        "endpoint": "GET /api/admin/customers",
+        "description": "Get all customers",
+        "response": {
+          "statusCode": 200,
+          "message": "Customers fetched successfully",
+          "data": [
+            {
+              "customerId": 1,
+              "customerName": "John Doe",
+              "emailId": "john.doe@example.com",
+              "contactNumber": 9876543210,
+              "address": "123 Main St, City",
+              "username": "john.doe"
+            }
+          ]
+        }
+      },
+      "customer_by_id": {
+        "endpoint": "GET /api/admin/customers/{customerId}",
+        "description": "Get customer by ID",
+        "response": {
+          "statusCode": 200,
+          "message": "Customer fetched successfully",
+          "data": {
+            "customerId": 1,
+            "customerName": "John Doe",
+            "emailId": "john.doe@example.com",
+            "contactNumber": 9876543210,
+            "address": "123 Main St, City",
+            "username": "john.doe"
+          }
+        }
+      },
+      "customer_by_contact": {
+        "endpoint": "GET /api/admin/customers/contact/{contactNumber}",
+        "description": "Get customer by contact number",
+        "response": {
+          "statusCode": 200,
+          "message": "Customer fetched successfully",
+          "data": {
+            "customerId": 1,
+            "customerName": "John Doe",
+            "emailId": "john.doe@example.com",
+            "contactNumber": 9876543210,
+            "address": "123 Main St, City",
+            "username": "john.doe"
+          }
+        }
+      },
+      "create_customer": {
+        "endpoint": "POST /api/admin/customers",
+        "description": "Create new customer",
+        "request": {
+          "customerName": "Jane Smith",
+          "emailId": "jane.smith@example.com",
+          "contactNumber": 9876543212,
+          "address": "789 Oak St, City",
+          "username": "jane.smith",
+          "password": "password123",
+          "role": "CUSTOMER"
+        },
+        "response": {
+          "statusCode": 201,
+          "message": "Customer created successfully",
+          "data": {
+            "customerId": 2,
+            "customerName": "Jane Smith",
+            "emailId": "jane.smith@example.com",
+            "contactNumber": 9876543212,
+            "address": "789 Oak St, City",
+            "username": "jane.smith",
+            "role": "CUSTOMER"
+          }
+        }
+      },
+      "update_customer": {
+        "endpoint": "PUT /api/admin/customers/{customerId}",
+        "description": "Update customer",
+        "request": {
+          "customerName": "Jane Johnson",
+          "address": "321 Pine St, City"
+        },
+        "response": {
+          "statusCode": 200,
+          "message": "Customer updated successfully",
+          "data": {
+            "customerId": 2,
+            "customerName": "Jane Johnson",
+            "emailId": "jane.smith@example.com",
+            "contactNumber": 9876543212,
+            "address": "321 Pine St, City",
+            "username": "jane.smith",
+            "role": "CUSTOMER"
+          }
+        }
+      },
+      "delete_customer": {
+        "endpoint": "DELETE /api/admin/customers/{customerId}",
+        "description": "Delete customer",
+        "response": {
+          "statusCode": 200,
+          "message": "Customer deleted successfully",
+          "data": "Deleted"
+        }
+      }
+    },
+    "restaurant_management": {
+      "all_restaurants": {
+        "endpoint": "GET /api/admin/restaurants",
+        "description": "Get all restaurants",
+        "response": {
+          "statusCode": 200,
+          "message": "Restaurants fetched successfully",
+          "data": [
+            {
+              "restaurantId": 1,
+              "restaurantName": "Pizza Palace",
+              "location": "New York"
+            }
+          ]
+        }
+      },
+      "restaurant_by_id": {
+        "endpoint": "GET /api/admin/restaurants/{restaurantId}",
+        "description": "Get restaurant by ID",
+        "response": {
+          "statusCode": 200,
+          "message": "Restaurant fetched successfully",
+          "data": {
+            "restaurantId": 1,
+            "restaurantName": "Pizza Palace",
+            "location": "New York"
+          }
+        }
+      },
+      "create_restaurant": {
+        "endpoint": "POST /api/admin/restaurants",
+        "description": "Create new restaurant",
+        "request": {
+          "restaurantName": "Sushi Station",
+          "location": "San Francisco"
+        },
+        "response": {
+          "statusCode": 201,
+          "message": "Restaurant created successfully",
+          "data": {
+            "restaurantId": 3,
+            "restaurantName": "Sushi Station",
+            "location": "San Francisco"
+          }
+        }
+      },
+      "update_restaurant": {
+        "endpoint": "PUT /api/admin/restaurants/{restaurantId}",
+        "description": "Update restaurant",
+        "request": {
+          "restaurantName": "Sushi House",
+          "location": "San Francisco, CA"
+        },
+        "response": {
+          "statusCode": 200,
+          "message": "Restaurant updated successfully",
+          "data": {
+            "restaurantId": 3,
+            "restaurantName": "Sushi House",
+            "location": "San Francisco, CA"
+          }
+        }
+      },
+      "delete_restaurant": {
+        "endpoint": "DELETE /api/admin/restaurants/{restaurantId}",
+        "description": "Delete restaurant",
+        "response": {
+          "statusCode": 200,
+          "message": "Restaurant deleted successfully",
+          "data": "Deleted"
+        }
+      }
+    },
+    "menu_item_management": {
+      "all_menu_items": {
+        "endpoint": "GET /api/admin/menuitems",
+        "description": "Get all menu items",
+        "response": {
+          "statusCode": 200,
+          "message": "Menu items fetched successfully",
+          "data": [
+            {
+              "itemId": 1,
+              "itemName": "Margherita Pizza",
+              "price": 12.99,
+              "availability": true,
+              "restaurant": {
+                "restaurantId": 1,
+                "restaurantName": "Pizza Palace"
+              }
+            }
+          ]
+        }
+      },
+      "menu_item_by_id": {
+        "endpoint": "GET /api/admin/menuitems/{itemId}",
+        "description": "Get menu item by ID",
+        "response": {
+          "statusCode": 200,
+          "message": "Menu item fetched successfully",
+          "data": {
+            "itemId": 1,
+            "itemName": "Margherita Pizza",
+            "price": 12.99,
+            "availability": true,
+            "restaurant": {
+              "restaurantId": 1,
+              "restaurantName": "Pizza Palace"
+            }
+          }
+        }
+      },
+      "menu_items_by_restaurant": {
+        "endpoint": "GET /api/admin/menuitems/restaurant/{restaurantId}",
+        "description": "Get menu items by restaurant",
+        "response": {
+          "statusCode": 200,
+          "message": "Menu items fetched successfully",
+          "data": [
+            {
+              "itemId": 1,
+              "itemName": "Margherita Pizza",
+              "price": 12.99,
+              "availability": true,
+              "restaurant": {
+                "restaurantId": 1,
+                "restaurantName": "Pizza Palace"
+              }
+            }
+          ]
+        }
+      },
+      "create_menu_item": {
+        "endpoint": "POST /api/admin/menuitems",
+        "description": "Create new menu item",
+        "request": {
+          "itemName": "Pepperoni Pizza",
+          "price": 14.99,
+          "availability": true,
+          "restaurant": {
+            "restaurantId": 1
+          }
+        },
+        "response": {
+          "statusCode": 201,
+          "message": "Menu item created successfully",
+          "data": {
+            "itemId": 5,
+            "itemName": "Pepperoni Pizza",
+            "price": 14.99,
+            "availability": true,
+            "restaurant": {
+              "restaurantId": 1,
+              "restaurantName": "Pizza Palace"
+            }
+          }
+        }
+      },
+      "update_menu_item": {
+        "endpoint": "PUT /api/admin/menuitems/{itemId}",
+        "description": "Update menu item",
+        "request": {
+          "itemName": "Spicy Pepperoni Pizza",
+          "price": 15.99,
+          "availability": true,
+          "restaurant": {
+            "restaurantId": 1
+          }
+        },
+        "response": {
+          "statusCode": 200,
+          "message": "Menu item updated successfully",
+          "data": {
+            "itemId": 5,
+            "itemName": "Spicy Pepperoni Pizza",
+            "price": 15.99,
+            "availability": true,
+            "restaurant": {
+              "restaurantId": 1,
+              "restaurantName": "Pizza Palace"
+            }
+          }
+        }
+      },
+      "delete_menu_item": {
+        "endpoint": "DELETE /api/admin/menuitems/{itemId}",
+        "description": "Delete menu item",
+        "response": {
+          "statusCode": 200,
+          "message": "Menu item deleted successfully",
+          "data": "Deleted"
+        }
+      }
+    },
+    "order_management": {
+      "all_orders": {
+        "endpoint": "GET /api/admin/orders",
+        "description": "Get all orders",
+        "response": {
+          "statusCode": 200,
+          "message": "Orders fetched successfully",
+          "data": [
+            {
+              "orderId": 1,
+              "orderDateTime": "2024-03-28T10:30:00",
+              "status": "PLACED",
+              "totalAmount": 38.97,
+              "customer": {
+                "customerId": 1,
+                "customerName": "John Doe"
+              }
+            }
+          ]
+        }
+      },
+      "order_by_id": {
+        "endpoint": "GET /api/admin/orders/{orderId}",
+        "description": "Get order by ID",
+        "response": {
+          "statusCode": 200,
+          "message": "Order fetched successfully",
+          "data": {
+            "orderId": 1,
+            "orderDateTime": "2024-03-28T10:30:00",
+            "status": "PLACED",
+            "totalAmount": 38.97,
+            "customer": {
+              "customerId": 1,
+              "customerName": "John Doe"
+            },
+            "payment": {
+              "paymentId": 1,
+              "paymentMethod": "CARD",
+              "paymentStatus": "SUCCESS"
+            },
+            "orderItems": [
+              {
+                "orderItemId": 1,
+                "itemName": "Margherita Pizza",
+                "price": 12.99,
+                "quantity": 2,
+                "subTotal": 25.98
+              }
+            ]
+          }
+        }
+      },
+      "orders_by_customer": {
+        "endpoint": "GET /api/admin/orders/customer/{customerId}",
+        "description": "Get orders by customer",
+        "response": {
+          "statusCode": 200,
+          "message": "Orders fetched successfully",
+          "data": [
+            {
+              "orderId": 1,
+              "orderDateTime": "2024-03-28T10:30:00",
+              "status": "PLACED",
+              "totalAmount": 38.97
+            }
+          ]
+        }
+      },
+      "orders_by_status": {
+        "endpoint": "GET /api/admin/orders/status/{status}",
+        "description": "Get orders by status",
+        "response": {
+          "statusCode": 200,
+          "message": "Orders fetched successfully",
+          "data": [
+            {
+              "orderId": 1,
+              "orderDateTime": "2024-03-28T10:30:00",
+              "status": "PLACED",
+              "totalAmount": 38.97
+            }
+          ]
+        }
+      },
+      "orders_by_date": {
+        "endpoint": "GET /api/admin/orders/by-date/{date}",
+        "description": "Get orders by date (format: yyyy-MM-dd)",
+        "response": {
+          "statusCode": 200,
+          "message": "Orders fetched successfully",
+          "data": [
+            {
+              "orderId": 1,
+              "orderDateTime": "2024-03-28T10:30:00",
+              "status": "PLACED",
+              "totalAmount": 38.97
+            }
+          ]
+        }
+      },
+      "orders_by_amount_range": {
+        "endpoint": "GET /api/admin/orders/amount/{minAmount}/{maxAmount}",
+        "description": "Get orders by amount range",
+        "response": {
+          "statusCode": 200,
+          "message": "Orders fetched successfully",
+          "data": [
+            {
+              "orderId": 1,
+              "orderDateTime": "2024-03-28T10:30:00",
+              "status": "PLACED",
+              "totalAmount": 38.97
+            }
+          ]
+        }
+      },
+      "orders_by_restaurant": {
+        "endpoint": "GET /api/admin/orders/restaurant/{restaurantId}",
+        "description": "Get orders by restaurant",
+        "response": {
+          "statusCode": 200,
+          "message": "Orders fetched successfully",
+          "data": [
+            {
+              "orderId": 1,
+              "orderDateTime": "2024-03-28T10:30:00",
+              "status": "PLACED",
+              "totalAmount": 38.97
+            }
+          ]
+        }
+      },
+      "update_order_status": {
+        "endpoint": "PUT /api/admin/orders/{orderId}/status",
+        "description": "Update order status",
+        "request": "CONFIRMED",
+        "response": {
+          "statusCode": 200,
+          "message": "Order status updated successfully",
+          "data": {
+            "orderId": 1,
+            "status": "CONFIRMED"
+          }
+        }
+      },
+      "cancel_order": {
+        "endpoint": "PUT /api/admin/orders/{orderId}/cancel",
+        "description": "Cancel order",
+        "response": {
+          "statusCode": 200,
+          "message": "Order cancelled successfully",
+          "data": {
+            "orderId": 1,
+            "status": "CANCELLED"
+          }
+        }
+      }
+    },
+    "order_item_management": {
+      "order_items": {
+        "endpoint": "GET /api/admin/orderitems/order/{orderId}",
+        "description": "Get order items",
+        "response": {
+          "statusCode": 200,
+          "message": "Order items fetched successfully",
+          "data": [
+            {
+              "orderItemId": 1,
+              "quantity": 2,
+              "subTotal": 25.98,
+              "menuItem": {
+                "itemId": 1,
+                "itemName": "Margherita Pizza",
+                "price": 12.99
+              }
+            }
+          ]
+        }
+      },
+      "add_item": {
+        "endpoint": "POST /api/admin/orderitems/order/{orderId}/items",
+        "description": "Add item to order",
+        "request": {
+          "menuItemId": 2,
+          "quantity": 1
+        },
+        "response": {
+          "statusCode": 201,
+          "message": "Item added to order successfully",
+          "data": {
+            "orderItemId": 2,
+            "quantity": 1,
+            "subTotal": 15.99
+          }
+        }
+      },
+      "update_quantity": {
+        "endpoint": "PUT /api/admin/orderitems/{orderItemId}",
+        "description": "Update item quantity",
+        "request": {
+          "quantity": 3
+        },
+        "response": {
+          "statusCode": 200,
+          "message": "Item quantity updated successfully",
+          "data": {
+            "orderItemId": 1,
+            "quantity": 3,
+            "subTotal": 38.97
+          }
+        }
+      },
+      "remove_item": {
+        "endpoint": "DELETE /api/admin/orderitems/{orderItemId}",
+        "description": "Remove item from order",
+        "response": {
+          "statusCode": 200,
+          "message": "Item removed from order successfully",
+          "data": "Deleted"
+        }
+      }
+    },
+    "payment_management": {
+      "payment_by_id": {
+        "endpoint": "GET /api/admin/payments/{paymentId}",
+        "description": "Get payment by ID",
+        "response": {
+          "statusCode": 200,
+          "message": "Payment fetched successfully",
+          "data": {
+            "paymentId": 1,
+            "paymentMethod": "CARD",
+            "paymentStatus": "SUCCESS",
+            "amount": 38.97,
+            "orderId": 1
+          }
+        }
+      },
+      "payments_by_status": {
+        "endpoint": "GET /api/admin/payments/status/{status}",
+        "description": "Get payments by status",
+        "response": {
+          "statusCode": 200,
+          "message": "Payments fetched successfully",
+          "data": [
+            {
+              "paymentId": 1,
+              "paymentMethod": "CARD",
+              "paymentStatus": "SUCCESS",
+              "amount": 38.97
+            }
+          ]
+        }
+      },
+      "payments_by_method": {
+        "endpoint": "GET /api/admin/payments/method/{method}",
+        "description": "Get payments by method",
+        "response": {
+          "statusCode": 200,
+          "message": "Payments fetched successfully",
+          "data": [
+            {
+              "paymentId": 1,
+              "paymentMethod": "CARD",
+              "paymentStatus": "SUCCESS",
+              "amount": 38.97
+            }
+          ]
+        }
+      },
+      "update_payment_status": {
+        "endpoint": "PUT /api/admin/payments/{paymentId}/status",
+        "description": "Update payment status",
+        "request": "SUCCESS",
+        "response": {
+          "statusCode": 200,
+          "message": "Payment status updated successfully",
+          "data": {
+            "paymentId": 1,
+            "paymentStatus": "SUCCESS"
+          }
+        }
+      }
+    }
+  },
+  "error_responses": {
+    "authentication_errors": {
+      "unauthorized": {
+        "statusCode": 401,
+        "message": "Unauthorized - Invalid credentials",
+        "data": "Failure"
+      },
+      "access_denied": {
+        "statusCode": 403,
+        "message": "Access Denied - Insufficient permissions",
+        "data": "Failure"
+      }
+    },
+    "validation_errors": {
+      "not_found": {
+        "statusCode": 404,
+        "message": "Resource not found",
+        "data": "Failure"
+      },
+      "bad_request": {
+        "statusCode": 400,
+        "message": "Invalid request data",
+        "data": "Failure"
+      },
+      "conflict": {
+        "statusCode": 409,
+        "message": "Data integrity violation",
+        "data": "Failure"
+      }
+    }
+  },
+  "status_enums": {
+    "order_status": ["PENDING_PAYMENT", "PLACED", "CONFIRMED", "PREPARING", "DELIVERED", "CANCELLED"],
+    "payment_status": ["PENDING", "SUCCESS", "FAILED"],
+    "payment_method": ["UPI", "CARD", "NET_BANKING", "CASH"]
+  }
+}
