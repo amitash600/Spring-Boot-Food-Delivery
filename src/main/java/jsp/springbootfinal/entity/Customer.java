@@ -40,6 +40,10 @@ public class Customer implements UserDetails {
 	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
 	private List<Order> orders;
 
+	@JsonIgnore
+	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
+	private List<PasswordResetToken> passwordResetTokens;
+
 	// UserDetails implementation
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -137,5 +141,13 @@ public class Customer implements UserDetails {
 
 	public void setOrders(List<Order> orders) {
 		this.orders = orders;
+	}
+
+	public List<PasswordResetToken> getPasswordResetTokens() {
+		return passwordResetTokens;
+	}
+
+	public void setPasswordResetTokens(List<PasswordResetToken> passwordResetTokens) {
+		this.passwordResetTokens = passwordResetTokens;
 	}
 }

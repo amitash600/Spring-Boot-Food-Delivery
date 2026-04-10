@@ -3,6 +3,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useNotification } from "../../contexts/NotificationContext";
 import { User, Mail, Phone, MapPin, Edit2, Save, X } from "lucide-react";
 import axios from "axios";
+import ChangePasswordModal from "../../components/ChangePasswordModal";
 
 const Profile = () => {
   const { user, updateUser, isAdmin } = useAuth();
@@ -10,6 +11,8 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
   const [formData, setFormData] = useState({
     customerName: "",
     emailId: "",
@@ -164,6 +167,36 @@ const Profile = () => {
       });
     }
     setIsEditing(false);
+  };
+
+  const handlePasswordChange = async (passwordData) => {
+    setPasswordLoading(true);
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        "http://localhost:8080/api/auth/change-password",
+        passwordData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      if (response.data === "Password changed successfully") {
+        showSuccess("Password changed successfully!");
+        setShowPasswordModal(false);
+      } else {
+        showError(response.data || "Failed to change password");
+      }
+    } catch (error) {
+      console.error("Password change error:", error);
+      showError(error.response?.data || "Failed to change password");
+    } finally {
+      setPasswordLoading(false);
+    }
   };
 
   if (!user) {
@@ -382,7 +415,10 @@ const Profile = () => {
                   </div>
                   <div className="flex items-center justify-between py-2">
                     <span className="text-gray-700">Password</span>
-                    <button className="text-primary-600 hover:text-primary-700 text-sm">
+                    <button
+                      onClick={() => setShowPasswordModal(true)}
+                      className="text-primary-600 hover:text-primary-700 text-sm"
+                    >
                       Change Password
                     </button>
                   </div>
@@ -411,6 +447,14 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+        onSubmit={handlePasswordChange}
+        loading={passwordLoading}
+      />
     </div>
   );
 };

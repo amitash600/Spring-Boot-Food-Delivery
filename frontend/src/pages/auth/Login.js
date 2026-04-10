@@ -53,7 +53,20 @@ const Login = () => {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           {error && (
             <div className="mb-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
-              {error}
+              <div className="flex items-center">
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11.746 0 10 10 0-10-10-10 10zm0 0a1 1 0 001 1v3a1 1 0 01-1h12a1 1 0 01-1v-3a1 1 0 011-1zm-7 4a1 1 0 11-1v1a1 1 0 11-1 1 1 0 112zm-2-2a1 1 0 00-2 0v2a1 1 0 002-2z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span className="text-sm font-medium">{error}</span>
+              </div>
             </div>
           )}
 
@@ -128,12 +141,12 @@ const Login = () => {
               </div>
 
               <div className="text-sm">
-                <a
-                  href="#"
+                <Link
+                  to="/forgot-password"
                   className="font-medium text-primary-600 hover:text-primary-500"
                 >
                   Forgot your password?
-                </a>
+                </Link>
               </div>
             </div>
 

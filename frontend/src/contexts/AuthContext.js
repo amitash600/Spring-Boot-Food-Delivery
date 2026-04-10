@@ -88,20 +88,12 @@ export const AuthProvider = ({ children }) => {
       };
     } catch (error) {
       console.error("Login error:", error);
-      console.error("Error response:", error.response?.data);
 
-      let errorMessage = "Login failed";
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.code === "ECONNREFUSED") {
-        errorMessage =
-          "Backend server is not running. Please start the Spring Boot application.";
-      } else if (error.response?.status === 401) {
-        errorMessage = "Invalid username or password";
-      } else if (error.response?.status === 404) {
-        errorMessage = "Login endpoint not found. Check backend API.";
-      }
+      // For any authentication error, show simple message
+      const errorMessage =
+        "Invalid username or password. Please check your credentials and try again.";
 
+      console.log("🎯 Error message:", errorMessage);
       return {
         success: false,
         message: errorMessage,

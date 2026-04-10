@@ -15,6 +15,8 @@ import Restaurants from "./pages/customer/Restaurants";
 import RestaurantDetail from "./pages/customer/RestaurantDetail";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 import Cart from "./pages/customer/Cart";
 import Checkout from "./pages/customer/Checkout";
 import Orders from "./pages/customer/Orders";
@@ -45,6 +47,8 @@ function App() {
                   <Route path="/" element={<Home />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/restaurants" element={<Restaurants />} />
                   <Route
                     path="/restaurant/:id"
