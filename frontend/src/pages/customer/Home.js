@@ -9,6 +9,7 @@ import Pagination from "../../components/Pagination";
 import Sorting from "../../components/Sorting";
 import ImageWithFallback from "../../components/ImageWithFallback";
 import { preloadImages } from "../../utils/imageUtils";
+import { API_ENDPOINTS } from "../../config/api";
 
 const Home = () => {
   const [restaurants, setRestaurants] = useState([]);
@@ -62,7 +63,12 @@ const Home = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `http://localhost:8080/api/restaurants/page/${restaurantPagination.page}/${restaurantPagination.size}/${restaurantSort.field}/${restaurantSort.order}`,
+        API_ENDPOINTS.PUBLIC.RESTAURANTS_PAGINATED(
+          restaurantPagination.page,
+          restaurantPagination.size,
+          restaurantSort.field,
+          restaurantSort.order,
+        ),
       );
 
       if (response.data && response.data.data) {
@@ -78,7 +84,7 @@ const Home = () => {
       // Fallback to non-paginated API
       try {
         const fallbackResponse = await axios.get(
-          "http://localhost:8080/api/restaurants",
+          API_ENDPOINTS.PUBLIC.RESTAURANTS,
         );
         setRestaurants(fallbackResponse.data.data || []);
       } catch (fallbackError) {
@@ -94,7 +100,12 @@ const Home = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `http://localhost:8080/api/menuitems/page/${menuItemPagination.page}/${menuItemPagination.size}/${menuItemSort.field}/${menuItemSort.order}`,
+        API_ENDPOINTS.PUBLIC.MENU_ITEMS_PAGINATED(
+          menuItemPagination.page,
+          menuItemPagination.size,
+          menuItemSort.field,
+          menuItemSort.order,
+        ),
       );
 
       if (response.data && response.data.data) {
@@ -110,7 +121,7 @@ const Home = () => {
       // Fallback to non-paginated API
       try {
         const fallbackResponse = await axios.get(
-          "http://localhost:8080/api/menuitems",
+          API_ENDPOINTS.PUBLIC.MENU_ITEMS,
         );
         setMenuItems(fallbackResponse.data.data || []);
       } catch (fallbackError) {

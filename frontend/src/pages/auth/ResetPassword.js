@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { Lock, Eye, EyeOff, CheckCircle, ArrowLeft } from "lucide-react";
+import { API_ENDPOINTS } from "../../config/api";
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
@@ -29,13 +30,15 @@ const ResetPassword = () => {
     const verifyToken = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8080/api/auth/verify-reset-token?token=${token}`
+          API_ENDPOINTS.AUTH.VERIFY_RESET_TOKEN(token),
         );
-        
+
         if (response.ok) {
           setTokenValid(true);
         } else {
-          setError("Invalid or expired reset link. Please request a new password reset.");
+          setError(
+            "Invalid or expired reset link. Please request a new password reset.",
+          );
           setTokenValid(false);
         }
       } catch (error) {
@@ -75,7 +78,7 @@ const ResetPassword = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:8080/api/auth/reset-password", {
+      const response = await fetch(API_ENDPOINTS.AUTH.RESET_PASSWORD, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -126,9 +129,7 @@ const ResetPassword = () => {
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
             Set New Password
           </h2>
-          <p className="text-gray-600">
-            Enter your new password below
-          </p>
+          <p className="text-gray-600">Enter your new password below</p>
         </div>
       </div>
 
@@ -140,7 +141,9 @@ const ResetPassword = () => {
                 <CheckCircle className="h-5 w-5 mr-2" />
                 {message}
               </div>
-              <p className="text-sm mt-2">You will be redirected to login page shortly...</p>
+              <p className="text-sm mt-2">
+                You will be redirected to login page shortly...
+              </p>
             </div>
           )}
 
@@ -266,9 +269,7 @@ const ResetPassword = () => {
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
-                  Back to
-                </span>
+                <span className="px-2 bg-white text-gray-500">Back to</span>
               </div>
             </div>
 

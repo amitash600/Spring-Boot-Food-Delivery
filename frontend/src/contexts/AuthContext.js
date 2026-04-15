@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
+import { API_ENDPOINTS } from "../config/api";
 
 const AuthContext = createContext();
 
@@ -51,12 +52,9 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       console.log("Attempting login with:", credentials);
-      console.log("Backend URL: http://localhost:8080/api/auth/login");
+      console.log("Backend URL:", API_ENDPOINTS.AUTH.LOGIN);
 
-      const response = await axios.post(
-        "http://localhost:8080/api/auth/login",
-        credentials,
-      );
+      const response = await axios.post(API_ENDPOINTS.AUTH.LOGIN, credentials);
 
       console.log("Full login response:", response.data);
 
@@ -103,10 +101,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/auth/register",
-        userData,
-      );
+      const response = await axios.post(API_ENDPOINTS.AUTH.REGISTER, userData);
       return { success: true, data: response.data };
     } catch (error) {
       console.error("Registration error:", error);
