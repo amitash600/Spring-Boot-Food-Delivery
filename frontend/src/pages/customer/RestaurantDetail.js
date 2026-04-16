@@ -13,7 +13,6 @@ import {
   ArrowLeft,
   ShoppingCart,
 } from "lucide-react";
-import axios from "axios";
 import Pagination from "../../components/Pagination";
 import Sorting from "../../components/Sorting";
 

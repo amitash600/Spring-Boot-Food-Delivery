@@ -12,7 +12,6 @@ import {
   User,
   ShoppingCart,
 } from "lucide-react";
-import axios from "axios";
 
 const Checkout = () => {
   const { user } = useAuth();

@@ -12,7 +12,6 @@ import {
   ArrowLeft,
   X,
 } from "lucide-react";
-import axios from "axios";
 import ConfirmDialog from "../../components/ConfirmDialog";
 
 const Orders = () => {
