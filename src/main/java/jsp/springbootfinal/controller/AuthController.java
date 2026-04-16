@@ -43,15 +43,36 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
+        try {
+            System.out.println("Login attempt for user: " + loginRequest.getUsername());
+            
+            // Check if user exists in database
+            Customer customer = customerRepository.findByUsername(loginRequest.getUsername()).orElse(null);
+            if (customer == null) {
+                System.out.println("User not found: " + loginRequest.getUsername());
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("User not found: " + loginRequest.getUsername());
+            }
+            
+            System.out.println("User found: " + customer.getUsername() + ", Role: " + customer.getRole());
+            
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            Customer authenticatedCustomer = (Customer) authentication.getPrincipal();
+            String jwt = jwtUtil.generateToken(authenticatedCustomer.getUsername());
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        Customer customer = (Customer) authentication.getPrincipal();
-        String jwt = jwtUtil.generateToken(customer.getUsername());
-
-        return ResponseEntity.ok(new JwtResponse(jwt, customer.getUsername(), customer.getRole()));
+            System.out.println("Authentication successful for: " + authenticatedCustomer.getUsername());
+            return ResponseEntity.ok(new JwtResponse(jwt, authenticatedCustomer.getUsername(), authenticatedCustomer.getRole()));
+            
+        } catch (Exception e) {
+            System.out.println("Authentication failed for user: " + loginRequest.getUsername());
+            System.out.println("Error: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Authentication failed: " + e.getMessage());
+        }
     }
 
     @PostMapping("/register")
