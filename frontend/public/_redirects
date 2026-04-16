@@ -1,1 +1,9 @@
+# Netlify redirects for React Router
+# Handle all client-side routes by serving index.html
+
+# Password reset routes with query parameters
+/reset-password    /index.html   200
+/reset-password/*    /index.html   200
+
+# All other routes
 /*    /index.html   200
