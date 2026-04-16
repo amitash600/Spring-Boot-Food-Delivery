@@ -4,7 +4,6 @@ import { Search, Star, Clock, MapPin, Filter } from "lucide-react";
 import axios from "axios";
 import Pagination from "../../components/Pagination";
 import Sorting from "../../components/Sorting";
-import ImageWithFallback from "../../components/ImageWithFallback";
 
 const Restaurants = () => {
   // Pagination and Sorting State
@@ -275,20 +274,21 @@ const Restaurants = () => {
                   to={`/restaurants/${restaurant.restaurantId}`}
                   className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
                 >
-                  <ImageWithFallback
-                    type="restaurant"
-                    name={restaurant.restaurantName}
+                  <img
+                    src={restaurant.imageUrl || ""}
                     alt={restaurant.restaurantName}
                     className="h-48 w-full object-cover"
-                    fallbackClassName="h-48 w-full"
-                  >
-                    <div className="text-white text-center">
-                      <div className="text-5xl mb-2">🍽️</div>
-                      <h3 className="text-xl font-semibold">
-                        {restaurant.restaurantName}
-                      </h3>
-                    </div>
-                  </ImageWithFallback>
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                      e.target.nextElementSibling.style.display = "flex";
+                    }}
+                  />
+                  <div className="hidden text-white text-center bg-gradient-to-br from-primary-400 to-primary-600 h-48 w-full items-center justify-center">
+                    <div className="text-5xl mb-2">🍽️</div>
+                    <h3 className="text-xl font-semibold">
+                      {restaurant.restaurantName}
+                    </h3>
+                  </div>
                   <div className="p-6">
                     <div className="flex items-center text-gray-600 mb-3">
                       <MapPin className="h-4 w-4 mr-2" />

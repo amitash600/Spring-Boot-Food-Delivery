@@ -7,7 +7,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useNotification } from "../../contexts/NotificationContext";
 import Pagination from "../../components/Pagination";
 import Sorting from "../../components/Sorting";
-import ImageWithFallback from "../../components/ImageWithFallback";
 import { preloadImages } from "../../utils/imageUtils";
 import { API_ENDPOINTS } from "../../config/api";
 
@@ -298,20 +297,21 @@ const Home = () => {
               to={`/restaurants/${restaurant.restaurantId}`}
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
             >
-              <ImageWithFallback
-                type="restaurant"
-                name={restaurant.restaurantName}
+              <img
+                src={restaurant.imageUrl || ""}
                 alt={restaurant.restaurantName}
                 className="h-48 w-full object-cover"
-                fallbackClassName="h-48 w-full"
-              >
-                <div className="text-white text-center">
-                  <div className="text-4xl mb-2">🍽️</div>
-                  <h3 className="text-xl font-semibold">
-                    {restaurant.restaurantName}
-                  </h3>
-                </div>
-              </ImageWithFallback>
+                onError={(e) => {
+                  e.target.style.display = "none";
+                  e.target.nextElementSibling.style.display = "flex";
+                }}
+              />
+              <div className="hidden text-white text-center bg-gradient-to-br from-primary-400 to-primary-600 h-48 w-full items-center justify-center">
+                <div className="text-4xl mb-2">🍽️</div>
+                <h3 className="text-xl font-semibold">
+                  {restaurant.restaurantName}
+                </h3>
+              </div>
               <div className="p-4">
                 <div className="flex items-center text-gray-600 mb-2">
                   <MapPin className="h-4 w-4 mr-1" />
@@ -373,15 +373,18 @@ const Home = () => {
               key={item.itemId}
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
             >
-              <ImageWithFallback
-                type="food"
-                name={item.itemName}
+              <img
+                src={item.imageUrl || ""}
                 alt={item.itemName}
                 className="h-32 w-full object-cover"
-                fallbackClassName="h-32 w-full"
-              >
-                <div className="text-white text-3xl">🍕</div>
-              </ImageWithFallback>
+                onError={(e) => {
+                  e.target.style.display = "none";
+                  e.target.nextElementSibling.style.display = "flex";
+                }}
+              />
+              <div className="hidden text-white text-center bg-gradient-to-br from-secondary-400 to-secondary-600 h-32 w-full items-center justify-center">
+                <div className="text-3xl">🍕</div>
+              </div>
               <div className="p-4">
                 <h3 className="font-semibold text-gray-900 mb-1">
                   {item.itemName}
