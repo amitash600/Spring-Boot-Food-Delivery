@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { Store, Search, Plus, Edit, Trash2 } from "lucide-react";
 import axios from "axios";
+import { API_URL } from "../../config/api";
 
 const AdminRestaurants = () => {
   const [restaurants, setRestaurants] = useState([]);
@@ -39,7 +40,7 @@ const AdminRestaurants = () => {
       console.log("Saving restaurant:", editingItem.restaurantId, editFormData);
 
       const response = await axios.put(
-        `http://localhost:8080/api/admin/restaurants/${editingItem.restaurantId}`,
+        `${API_URL}/api/admin/restaurants/${editingItem.restaurantId}`,
         editFormData,
         {
           headers: {
@@ -86,7 +87,7 @@ const AdminRestaurants = () => {
     ) {
       try {
         await axios.delete(
-          `http://localhost:8080/api/admin/restaurants/${restaurant.restaurantId}`,
+          `${API_URL}/api/admin/restaurants/${restaurant.restaurantId}`,
         );
         setRestaurants(
           restaurants.filter((r) => r.restaurantId !== restaurant.restaurantId),
@@ -108,9 +109,7 @@ const AdminRestaurants = () => {
       console.log("🔍 Fetching admin restaurants...");
       console.log("🔑 Token:", localStorage.getItem("token"));
 
-      const response = await axios.get(
-        "http://localhost:8080/api/admin/restaurants",
-      );
+      const response = await axios.get(`${API_URL}/api/admin/restaurants`);
       console.log("✅ Restaurants response:", response.data);
       console.log("✅ Restaurants data:", response.data.data);
 

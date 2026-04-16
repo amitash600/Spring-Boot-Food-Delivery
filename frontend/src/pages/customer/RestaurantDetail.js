@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { useParams, Link } from "react-router-dom";
+import { API_URL } from "../../config/api";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCart } from "../../contexts/CartContext";
 import {
@@ -57,14 +59,12 @@ const RestaurantDetail = () => {
       setLoading(true);
 
       // Fetch restaurant details (non-paginated)
-      const restaurantRes = await axios.get(
-        `http://localhost:8080/api/restaurants/${id}`,
-      );
+      const restaurantRes = await axios.get(`${API_URL}/api/restaurants/${id}`);
       setRestaurant(restaurantRes.data.data);
 
       // Fetch menu items with pagination and sorting
       const menuItemsRes = await axios.get(
-        `http://localhost:8080/api/menuitems/restaurant/${id}/page/${page}/${pagination.size}/${sortField}/${sortOrder}`,
+        `${API_URL}/api/menuitems/restaurant/${id}/page/${page}/${pagination.size}/${sortField}/${sortOrder}`,
       );
 
       setMenuItems(menuItemsRes.data.data.content || []);
@@ -79,8 +79,8 @@ const RestaurantDetail = () => {
       // Fallback to non-paginated API
       try {
         const [restaurantRes, menuItemsFallbackRes] = await Promise.all([
-          axios.get(`http://localhost:8080/api/restaurants/${id}`),
-          axios.get(`http://localhost:8080/api/menuitems/restaurant/${id}`),
+          axios.get(`${API_URL}/api/restaurants/${id}`),
+          axios.get(`${API_URL}/api/menuitems/restaurant/${id}`),
         ]);
 
         setRestaurant(restaurantRes.data.data);
@@ -113,7 +113,7 @@ const RestaurantDetail = () => {
   const fetchMenuItemsWithPagination = async () => {
     try {
       const menuItemsRes = await axios.get(
-        `http://localhost:8080/api/menuitems/restaurant/${id}/page/${pagination.page}/${pagination.size}/${sort.field}/${sort.order}`,
+        `${API_URL}/api/menuitems/restaurant/${id}/page/${pagination.page}/${pagination.size}/${sort.field}/${sort.order}`,
       );
 
       setMenuItems(menuItemsRes.data.data.content || []);
@@ -196,10 +196,7 @@ const RestaurantDetail = () => {
         },
       };
 
-      const response = await axios.post(
-        "http://localhost:8080/api/orders",
-        orderData,
-      );
+      const response = await axios.post(`${API_URL}/api/orders`, orderData);
 
       if (response.data.statusCode === 201) {
         showNotification(

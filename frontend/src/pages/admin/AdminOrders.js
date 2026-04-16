@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { API_URL } from "../../config/api";
 import { useAuth } from "../../contexts/AuthContext";
 import { ShoppingCart, Search, Filter, Eye } from "lucide-react";
-import axios from "axios";
 
 const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -23,9 +24,7 @@ const AdminOrders = () => {
   const fetchOrders = async () => {
     try {
       console.log("Fetching all admin orders...");
-      const response = await axios.get(
-        "http://localhost:8080/api/admin/orders",
-      );
+      const response = await axios.get(`${API_URL}/api/admin/orders`);
       console.log("Admin orders response:", response.data);
 
       const orders = response.data.data || [];
@@ -69,7 +68,7 @@ const AdminOrders = () => {
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
     try {
       const response = await axios.put(
-        `http://localhost:8080/api/admin/orders/${orderId}/status`,
+        `${API_URL}/api/admin/orders/${orderId}/status`,
         { status: newStatus },
         {
           headers: {
@@ -101,7 +100,7 @@ const AdminOrders = () => {
   const handleUpdatePaymentStatus = async (orderId, newPaymentStatus) => {
     try {
       const response = await axios.put(
-        `http://localhost:8080/api/admin/orders/${orderId}/payment`,
+        `${API_URL}/api/admin/orders/${orderId}/payment`,
         { paymentStatus: newPaymentStatus },
         {
           headers: {

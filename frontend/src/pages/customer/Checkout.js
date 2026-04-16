@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import axios from "axios";
+import { API_URL } from "../../config/api";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCart } from "../../contexts/CartContext";
@@ -78,10 +80,7 @@ const Checkout = () => {
         totalAmount: finalTotal,
       };
 
-      const response = await axios.post(
-        "http://localhost:8080/api/orders",
-        orderPayload,
-      );
+      const response = await axios.post(`${API_URL}/api/orders`, orderPayload);
 
       if (response.data.statusCode === 201) {
         const createdOrder = response.data.data;

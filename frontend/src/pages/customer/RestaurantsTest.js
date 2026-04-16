@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Search, Star, Clock, MapPin, Filter } from "lucide-react";
 import axios from "axios";
+import { Link } from "react-router-dom";
+import { API_URL } from "../../config/api";
+import { Search, Star, Clock, MapPin, Filter } from "lucide-react";
 import Pagination from "../../components/Pagination";
 import Sorting from "../../components/Sorting";
 
@@ -27,11 +28,11 @@ const RestaurantsTest = () => {
 
   // Debug state
   const [debugInfo, setDebugInfo] = useState({
-    apiCall: '',
+    apiCall: "",
     apiResponse: null,
     error: null,
     paginationState: null,
-    sortState: null
+    sortState: null,
   });
 
   // Fetch restaurants with pagination and sorting
@@ -42,14 +43,14 @@ const RestaurantsTest = () => {
   ) => {
     try {
       setLoading(true);
-      const apiUrl = `http://localhost:8080/api/restaurants/page/${page}/${pagination.size}/${sortField}/${sortOrder}`;
-      
+      const apiUrl = `${API_URL}/api/restaurants/page/${page}/${pagination.size}/${sortField}/${sortOrder}`;
+
       console.log("🚀 API Call:", apiUrl);
-      setDebugInfo(prev => ({ ...prev, apiCall: apiUrl, error: null }));
-      
+      setDebugInfo((prev) => ({ ...prev, apiCall: apiUrl, error: null }));
+
       const response = await axios.get(apiUrl);
       console.log("📦 API Response:", response.data);
-      setDebugInfo(prev => ({ ...prev, apiResponse: response.data }));
+      setDebugInfo((prev) => ({ ...prev, apiResponse: response.data }));
 
       setRestaurants(response.data.data.content || []);
       setPagination((prev) => ({
@@ -58,25 +59,24 @@ const RestaurantsTest = () => {
         totalPages: response.data.data.totalPages || 0,
         totalElements: response.data.data.totalElements || 0,
       }));
-      
-      setDebugInfo(prev => ({ 
-        ...prev, 
+
+      setDebugInfo((prev) => ({
+        ...prev,
         paginationState: {
           page: response.data.data.pageable?.pageNumber || 0,
           totalPages: response.data.data.totalPages || 0,
           totalElements: response.data.data.totalElements || 0,
-          contentLength: response.data.data.content?.length || 0
-        }
+          contentLength: response.data.data.content?.length || 0,
+        },
       }));
-      
     } catch (error) {
       console.error("❌ Error fetching restaurants:", error);
-      setDebugInfo(prev => ({ ...prev, error: error.message }));
-      
+      setDebugInfo((prev) => ({ ...prev, error: error.message }));
+
       // Fallback to non-paginated API
       try {
         console.log("🔄 Trying fallback API...");
-        const fallbackResponse = await axios.get("http://localhost:8080/api/restaurants");
+        const fallbackResponse = await axios.get(`${API_URL}/api/restaurants`);
         setRestaurants(fallbackResponse.data.data || []);
         setPagination((prev) => ({
           ...prev,
@@ -85,7 +85,10 @@ const RestaurantsTest = () => {
         }));
       } catch (fallbackError) {
         console.error("❌ Fallback API also failed:", fallbackError);
-        setDebugInfo(prev => ({ ...prev, error: `Main API failed: ${error.message}. Fallback also failed: ${fallbackError.message}` }));
+        setDebugInfo((prev) => ({
+          ...prev,
+          error: `Main API failed: ${error.message}. Fallback also failed: ${fallbackError.message}`,
+        }));
       }
     } finally {
       setLoading(false);
@@ -95,9 +98,11 @@ const RestaurantsTest = () => {
   // Fetch locations for filter dropdown
   const fetchLocations = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/api/restaurants");
+      const response = await axios.get(`${API_URL}/api/restaurants`);
       const allRestaurants = response.data.data || [];
-      const uniqueLocations = [...new Set(allRestaurants.map((r) => r.location))];
+      const uniqueLocations = [
+        ...new Set(allRestaurants.map((r) => r.location)),
+      ];
       setLocations(uniqueLocations);
     } catch (error) {
       console.error("Error fetching locations:", error);
@@ -119,7 +124,7 @@ const RestaurantsTest = () => {
 
   // Update debug info when sort changes
   useEffect(() => {
-    setDebugInfo(prev => ({ ...prev, sortState: sort }));
+    setDebugInfo((prev) => ({ ...prev, sortState: sort }));
   }, [sort]);
 
   // Handle page change
@@ -148,7 +153,8 @@ const RestaurantsTest = () => {
   });
 
   // Show filtered results only when searching or filtering, otherwise show paginated results
-  const displayRestaurants = searchTerm || selectedLocation ? filteredRestaurants : restaurants;
+  const displayRestaurants =
+    searchTerm || selectedLocation ? filteredRestaurants : restaurants;
 
   // Sorting options
   const sortOptions = [
@@ -179,15 +185,32 @@ const RestaurantsTest = () => {
 
         {/* Debug Panel */}
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <h3 className="text-lg font-semibold text-red-800 mb-2">🐛 Debug Information</h3>
+          <h3 className="text-lg font-semibold text-red-800 mb-2">
+            🐛 Debug Information
+          </h3>
           <div className="text-sm text-red-700 space-y-2">
-            <div><strong>API Call:</strong> {debugInfo.apiCall}</div>
-            <div><strong>Sort State:</strong> {JSON.stringify(debugInfo.sortState)}</div>
-            <div><strong>Pagination State:</strong> {JSON.stringify(debugInfo.paginationState)}</div>
-            <div><strong>Error:</strong> {debugInfo.error || 'None'}</div>
-            <div><strong>Loading:</strong> {loading ? 'Yes' : 'No'}</div>
-            <div><strong>Restaurants Count:</strong> {restaurants.length}</div>
-            <div><strong>Display Count:</strong> {displayRestaurants.length}</div>
+            <div>
+              <strong>API Call:</strong> {debugInfo.apiCall}
+            </div>
+            <div>
+              <strong>Sort State:</strong> {JSON.stringify(debugInfo.sortState)}
+            </div>
+            <div>
+              <strong>Pagination State:</strong>{" "}
+              {JSON.stringify(debugInfo.paginationState)}
+            </div>
+            <div>
+              <strong>Error:</strong> {debugInfo.error || "None"}
+            </div>
+            <div>
+              <strong>Loading:</strong> {loading ? "Yes" : "No"}
+            </div>
+            <div>
+              <strong>Restaurants Count:</strong> {restaurants.length}
+            </div>
+            <div>
+              <strong>Display Count:</strong> {displayRestaurants.length}
+            </div>
           </div>
         </div>
 
@@ -226,10 +249,9 @@ const RestaurantsTest = () => {
             {/* Results Count */}
             <div className="flex items-center justify-center md:justify-end">
               <span className="text-gray-600">
-                {searchTerm || selectedLocation 
-                  ? `${displayRestaurants.length} restaurants found` 
-                  : `${pagination.totalElements} restaurants found`
-                }
+                {searchTerm || selectedLocation
+                  ? `${displayRestaurants.length} restaurants found`
+                  : `${pagination.totalElements} restaurants found`}
               </span>
             </div>
           </div>
@@ -313,7 +335,9 @@ const RestaurantsTest = () => {
 
             {/* Pagination Component - Always visible for testing */}
             <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="text-sm font-semibold text-blue-800 mb-2">📄 Pagination Component (Always Visible)</h4>
+              <h4 className="text-sm font-semibold text-blue-800 mb-2">
+                📄 Pagination Component (Always Visible)
+              </h4>
               <Pagination
                 currentPage={pagination.page}
                 totalPages={pagination.totalPages}

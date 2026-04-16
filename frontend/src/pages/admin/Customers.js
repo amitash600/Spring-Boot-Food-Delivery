@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { API_URL } from "../../config/api";
 import { useAuth } from "../../contexts/AuthContext";
 import { Users, Search, Mail, Phone, MapPin, Edit, Trash2 } from "lucide-react";
-import axios from "axios";
 
 const Customers = () => {
   const { user } = useAuth();
@@ -44,7 +45,7 @@ const Customers = () => {
       console.log("Saving customer:", editingItem.customerId, editFormData);
 
       const response = await axios.put(
-        `http://localhost:8080/api/admin/customers/${editingItem.customerId}`,
+        `${API_URL}/api/admin/customers/${editingItem.customerId}`,
         editFormData,
         {
           headers: {
@@ -91,7 +92,7 @@ const Customers = () => {
     ) {
       try {
         await axios.delete(
-          `http://localhost:8080/api/admin/customers/${customer.customerId}`,
+          `${API_URL}/api/admin/customers/${customer.customerId}`,
         );
         setCustomers(
           customers.filter((c) => c.customerId !== customer.customerId),
@@ -113,9 +114,7 @@ const Customers = () => {
       console.log("🔍 Fetching admin customers...");
       console.log("🔑 Token:", localStorage.getItem("token"));
 
-      const response = await axios.get(
-        "http://localhost:8080/api/admin/customers",
-      );
+      const response = await axios.get(`${API_URL}/api/admin/customers`);
       console.log("✅ Customers response:", response.data);
       console.log("✅ Customers data:", response.data.data);
 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { API_URL } from "../../config/api";
 import { useAuth } from "../../contexts/AuthContext";
 import { ShoppingCart, Search, Plus, Edit, Trash2 } from "lucide-react";
-import axios from "axios";
 
 const AdminMenuItems = () => {
   const [menuItems, setMenuItems] = useState([]);
@@ -62,7 +63,7 @@ const AdminMenuItems = () => {
 
       // Use PUT endpoint directly
       const response = await axios.put(
-        `http://localhost:8080/api/admin/menuitems/${editingItem.itemId}`,
+        `${API_URL}/api/admin/menuitems/${editingItem.itemId}`,
         formData,
         {
           headers: {
@@ -123,9 +124,7 @@ const AdminMenuItems = () => {
   const handleDelete = async (item) => {
     if (window.confirm(`Are you sure you want to delete ${item.itemName}?`)) {
       try {
-        await axios.delete(
-          `http://localhost:8080/api/admin/menuitems/${item.itemId}`,
-        );
+        await axios.delete(`${API_URL}/api/admin/menuitems/${item.itemId}`);
         setMenuItems(menuItems.filter((mi) => mi.itemId !== item.itemId));
         showNotification("success", "Menu item deleted successfully!");
       } catch (error) {
@@ -144,9 +143,7 @@ const AdminMenuItems = () => {
       console.log("🔍 Fetching admin menu items...");
       console.log("🔑 Token:", localStorage.getItem("token"));
 
-      const response = await axios.get(
-        "http://localhost:8080/api/admin/menuitems",
-      );
+      const response = await axios.get(`${API_URL}/api/admin/menuitems`);
       console.log("✅ Menu items response:", response.data);
       console.log("✅ Menu items data:", response.data.data);
 

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { API_URL } from "../../config/api";
 import { Link } from "react-router-dom";
 import {
   Users,
@@ -29,9 +31,9 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       const [customersRes, restaurantsRes, ordersRes] = await Promise.all([
-        axios.get("http://localhost:8080/api/admin/customers"),
-        axios.get("http://localhost:8080/api/admin/restaurants"),
-        axios.get("http://localhost:8080/api/admin/orders"),
+        axios.get(`${API_URL}/api/admin/customers`),
+        axios.get(`${API_URL}/api/admin/restaurants`),
+        axios.get(`${API_URL}/api/admin/orders`),
       ]);
 
       const customers = customersRes.data.data || [];

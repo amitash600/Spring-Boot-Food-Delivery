@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { API_URL } from "../../config/api";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNotification } from "../../contexts/NotificationContext";
 import { User, Mail, Phone, MapPin, Edit2, Save, X } from "lucide-react";
-import axios from "axios";
 import ChangePasswordModal from "../../components/ChangePasswordModal";
 
 const Profile = () => {
@@ -65,19 +66,16 @@ const Profile = () => {
       console.log("📍 User object:", user);
       console.log("📍 User role:", user?.role);
       console.log("📍 Is Admin:", isAdmin);
-      console.log("📍 API URL: http://localhost:8080/api/customer/profile");
+      console.log("📍 API URL:", `${API_URL}/api/customer/profile`);
       console.log("🔑 Token:", localStorage.getItem("token"));
 
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "http://localhost:8080/api/customer/profile",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+      const response = await axios.get(`${API_URL}/api/customer/profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-      );
+      });
       console.log("✅ Profile response status:", response.status);
       console.log("✅ Profile response:", response.data);
       console.log("✅ Profile data:", response.data.data);
@@ -127,14 +125,11 @@ const Profile = () => {
 
     try {
       // Real API call to update profile
-      const response = await axios.put(
-        `http://localhost:8080/api/customer/profile`,
-        {
-          customerName: formData.customerName,
-          address: formData.address,
-          contactNumber: formData.contactNumber,
-        },
-      );
+      const response = await axios.put(`${API_URL}/api/customer/profile`, {
+        customerName: formData.customerName,
+        address: formData.address,
+        contactNumber: formData.contactNumber,
+      });
 
       console.log("Profile update response:", response.data);
 
@@ -175,7 +170,7 @@ const Profile = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "http://localhost:8080/api/auth/change-password",
+        `${API_URL}/api/auth/change-password`,
         passwordData,
         {
           headers: {

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { API_URL } from "../../config/api";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNotification } from "../../contexts/NotificationContext";
@@ -30,7 +32,7 @@ const Orders = () => {
   const fetchOrders = async () => {
     try {
       console.log("Fetching customer orders...");
-      const response = await axios.get("http://localhost:8080/api/orders");
+      const response = await axios.get(`${API_URL}/api/orders`);
       console.log("Orders response:", response.data);
 
       const customerOrders = response.data.data || [];
@@ -57,7 +59,7 @@ const Orders = () => {
 
     try {
       const response = await axios.put(
-        `http://localhost:8080/api/orders/${orderId}/cancel`,
+        `${API_URL}/api/orders/${orderId}/cancel`,
       );
 
       if (response.data.statusCode === 200) {

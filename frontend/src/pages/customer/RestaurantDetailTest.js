@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { API_URL } from "../../config/api";
 import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCart } from "../../contexts/CartContext";
@@ -19,7 +21,7 @@ const RestaurantDetailTest = () => {
   const { id } = useParams();
   const { isAuthenticated } = useAuth();
   const { addToCart, canAddItem, cartItems } = useCart();
-  
+
   // Restaurant and Menu Items State
   const [restaurant, setRestaurant] = useState(null);
   const [menuItems, setMenuItems] = useState([]);
@@ -51,27 +53,25 @@ const RestaurantDetailTest = () => {
   const fetchRestaurantDetails = async () => {
     try {
       setLoading(true);
-      
+
       console.log("Fetching with pagination:", {
         page: pagination.page,
         size: pagination.size,
         sort: sort.field,
-        order: sort.order
+        order: sort.order,
       });
 
       // Fetch restaurant details (non-paginated)
-      const restaurantRes = await axios.get(
-        `http://localhost:8080/api/restaurants/${id}`,
-      );
+      const restaurantRes = await axios.get(`${API_URL}/api/restaurants/${id}`);
       setRestaurant(restaurantRes.data.data);
 
       // Fetch menu items with pagination and sorting
       const menuItemsRes = await axios.get(
-        `http://localhost:8080/api/menuitems/restaurant/${id}/page/${pagination.page}/${pagination.size}/${sort.field}/${sort.order}`
+        `${API_URL}/api/menuitems/restaurant/${id}/page/${pagination.page}/${pagination.size}/${sort.field}/${sort.order}`,
       );
-      
+
       console.log("Menu items response:", menuItemsRes.data);
-      
+
       setMenuItems(menuItemsRes.data.data.content || []);
       setPagination((prev) => ({
         ...prev,
@@ -84,8 +84,8 @@ const RestaurantDetailTest = () => {
       // Fallback to non-paginated API
       try {
         const [restaurantRes, menuItemsFallbackRes] = await Promise.all([
-          axios.get(`http://localhost:8080/api/restaurants/${id}`),
-          axios.get(`http://localhost:8080/api/menuitems/restaurant/${id}`),
+          axios.get(`${API_URL}/api/restaurants/${id}`),
+          axios.get(`${API_URL}/api/menuitems/restaurant/${id}`),
         ]);
 
         setRestaurant(restaurantRes.data.data);
@@ -120,15 +120,15 @@ const RestaurantDetailTest = () => {
         page: pagination.page,
         size: pagination.size,
         sort: sort.field,
-        order: sort.order
+        order: sort.order,
       });
 
       const menuItemsRes = await axios.get(
-        `http://localhost:8080/api/menuitems/restaurant/${id}/page/${pagination.page}/${pagination.size}/${sort.field}/${sort.order}`
+        `${API_URL}/api/menuitems/restaurant/${id}/page/${pagination.page}/${pagination.size}/${sort.field}/${sort.order}`,
       );
-      
+
       console.log("Menu items refetch response:", menuItemsRes.data);
-      
+
       setMenuItems(menuItemsRes.data.data.content || []);
       setPagination((prev) => ({
         ...prev,
@@ -189,7 +189,9 @@ const RestaurantDetailTest = () => {
   };
 
   const filteredMenuItems = menuItems.filter((item) => {
-    const matchesSearch = item.itemName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = item.itemName
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
     const matchesAvailability = !filterAvailable || item.availability;
     return matchesSearch && matchesAvailability;
   });
@@ -307,7 +309,10 @@ const RestaurantDetailTest = () => {
                   onChange={(e) => setFilterAvailable(e.target.checked)}
                   className="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                 />
-                <label htmlFor="available" className="ml-2 text-sm text-gray-700">
+                <label
+                  htmlFor="available"
+                  className="ml-2 text-sm text-gray-700"
+                >
                   Available only
                 </label>
               </div>
@@ -319,12 +324,12 @@ const RestaurantDetailTest = () => {
             </div>
 
             {/* Sorting Controls */}
-            <Sorting 
+            <Sorting
               currentSort={sort}
               onSortChange={handleSortChange}
               options={[
-                { field: 'itemName', label: 'Name' },
-                { field: 'price', label: 'Price' }
+                { field: "itemName", label: "Name" },
+                { field: "price", label: "Price" },
               ]}
               disabled={loading}
             />
@@ -360,7 +365,8 @@ const RestaurantDetailTest = () => {
                       {item.itemName}
                     </h3>
                     <p className="text-gray-600 mb-4">
-                      Delicious {item.itemName.toLowerCase()} made with fresh ingredients
+                      Delicious {item.itemName.toLowerCase()} made with fresh
+                      ingredients
                     </p>
 
                     <div className="flex items-center justify-between mb-4">
@@ -402,7 +408,9 @@ const RestaurantDetailTest = () => {
 
           {/* Pagination Component - ALWAYS VISIBLE FOR TESTING */}
           <div className="mt-8 border-2 border-blue-500 p-4">
-            <h3 className="text-lg font-bold text-blue-800 mb-4">Pagination Component:</h3>
+            <h3 className="text-lg font-bold text-blue-800 mb-4">
+              Pagination Component:
+            </h3>
             <Pagination
               currentPage={pagination.page}
               totalPages={pagination.totalPages}

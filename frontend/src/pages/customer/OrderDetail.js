@@ -1,8 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { ArrowLeft, Package, Clock, CheckCircle, XCircle, MapPin, CreditCard } from 'lucide-react';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { API_URL } from "../../config/api";
+import { useParams, Link } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import {
+  ArrowLeft,
+  Package,
+  Clock,
+  CheckCircle,
+  XCircle,
+  MapPin,
+  CreditCard,
+} from "lucide-react";
 
 const OrderDetail = () => {
   const { id } = useParams();
@@ -16,10 +25,10 @@ const OrderDetail = () => {
 
   const fetchOrderDetail = async () => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/orders/${id}`);
+      const response = await axios.get(`${API_URL}/api/orders/${id}`);
       setOrder(response.data.data);
     } catch (error) {
-      console.error('Error fetching order detail:', error);
+      console.error("Error fetching order detail:", error);
     } finally {
       setLoading(false);
     }
@@ -27,15 +36,15 @@ const OrderDetail = () => {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'PLACED':
+      case "PLACED":
         return <Clock className="h-5 w-5 text-blue-500" />;
-      case 'CONFIRMED':
+      case "CONFIRMED":
         return <CheckCircle className="h-5 w-5 text-yellow-500" />;
-      case 'PREPARING':
+      case "PREPARING":
         return <Package className="h-5 w-5 text-orange-500" />;
-      case 'DELIVERED':
+      case "DELIVERED":
         return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'CANCELLED':
+      case "CANCELLED":
         return <XCircle className="h-5 w-5 text-red-500" />;
       default:
         return <Clock className="h-5 w-5 text-gray-500" />;
@@ -44,18 +53,18 @@ const OrderDetail = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'PLACED':
-        return 'bg-blue-100 text-blue-800';
-      case 'CONFIRMED':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'PREPARING':
-        return 'bg-orange-100 text-orange-800';
-      case 'DELIVERED':
-        return 'bg-green-100 text-green-800';
-      case 'CANCELLED':
-        return 'bg-red-100 text-red-800';
+      case "PLACED":
+        return "bg-blue-100 text-blue-800";
+      case "CONFIRMED":
+        return "bg-yellow-100 text-yellow-800";
+      case "PREPARING":
+        return "bg-orange-100 text-orange-800";
+      case "DELIVERED":
+        return "bg-green-100 text-green-800";
+      case "CANCELLED":
+        return "bg-red-100 text-red-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -74,8 +83,13 @@ const OrderDetail = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Order not found</h2>
-          <Link to="/orders" className="text-primary-600 hover:text-primary-700">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Order not found
+          </h2>
+          <Link
+            to="/orders"
+            className="text-primary-600 hover:text-primary-700"
+          >
             Back to Orders
           </Link>
         </div>
@@ -95,11 +109,15 @@ const OrderDetail = () => {
             <ArrowLeft className="h-5 w-5 mr-2" />
             Back to Orders
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Order #{order.orderId}</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Order #{order.orderId}
+          </h1>
           <div className="flex items-center space-x-4">
             <div className="flex items-center">
               {getStatusIcon(order.status)}
-              <span className={`ml-2 px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
+              <span
+                className={`ml-2 px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}
+              >
                 {order.status}
               </span>
             </div>
@@ -114,11 +132,15 @@ const OrderDetail = () => {
           <div className="lg:col-span-2 space-y-6">
             {/* Customer Info */}
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Customer Information</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Customer Information
+              </h2>
               <div className="space-y-3">
                 <div className="flex items-center">
                   <span className="text-gray-600 w-24">Name:</span>
-                  <span className="font-medium">{order.customer?.customerName}</span>
+                  <span className="font-medium">
+                    {order.customer?.customerName}
+                  </span>
                 </div>
                 <div className="flex items-center">
                   <span className="text-gray-600 w-24">Email:</span>
@@ -126,34 +148,47 @@ const OrderDetail = () => {
                 </div>
                 <div className="flex items-center">
                   <span className="text-gray-600 w-24">Contact:</span>
-                  <span className="font-medium">{order.customer?.contactNumber}</span>
+                  <span className="font-medium">
+                    {order.customer?.contactNumber}
+                  </span>
                 </div>
               </div>
             </div>
 
             {/* Order Items */}
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Order Items</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Order Items
+              </h2>
               <div className="space-y-4">
                 {order.orderItems?.map((item, index) => (
-                  <div key={index} className="flex justify-between items-center py-3 border-b last:border-b-0">
+                  <div
+                    key={index}
+                    className="flex justify-between items-center py-3 border-b last:border-b-0"
+                  >
                     <div className="flex items-center space-x-4">
                       <div className="w-12 h-12 bg-gradient-to-br from-secondary-400 to-secondary-600 rounded-lg flex items-center justify-center text-white">
                         🍕
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{item.itemName}</p>
-                        <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                        <p className="font-medium text-gray-900">
+                          {item.itemName}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Quantity: {item.quantity}
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-gray-900">${(item.price * item.quantity).toFixed(2)}</p>
-                      <p className="text-sm text-gray-600">${item.price} each</p>
+                      <p className="font-medium text-gray-900">
+                        ${(item.price * item.quantity).toFixed(2)}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        ${item.price} each
+                      </p>
                     </div>
                   </div>
-                )) || (
-                  <p className="text-gray-500">No items found</p>
-                )}
+                )) || <p className="text-gray-500">No items found</p>}
               </div>
             </div>
           </div>
@@ -161,12 +196,16 @@ const OrderDetail = () => {
           {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Order Summary</h2>
-              
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Order Summary
+              </h2>
+
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="text-gray-900">${order.totalAmount.toFixed(2)}</span>
+                  <span className="text-gray-900">
+                    ${order.totalAmount.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Delivery Fee</span>
@@ -174,32 +213,47 @@ const OrderDetail = () => {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Tax</span>
-                  <span className="text-gray-900">${(order.totalAmount * 0.08).toFixed(2)}</span>
+                  <span className="text-gray-900">
+                    ${(order.totalAmount * 0.08).toFixed(2)}
+                  </span>
                 </div>
                 <div className="border-t pt-3">
                   <div className="flex justify-between font-semibold text-lg">
                     <span>Total</span>
-                    <span>${(order.totalAmount + 2.99 + order.totalAmount * 0.08).toFixed(2)}</span>
+                    <span>
+                      $
+                      {(
+                        order.totalAmount +
+                        2.99 +
+                        order.totalAmount * 0.08
+                      ).toFixed(2)}
+                    </span>
                   </div>
                 </div>
               </div>
 
               {/* Payment Info */}
               <div className="border-t pt-6">
-                <h3 className="font-medium text-gray-900 mb-3">Payment Information</h3>
+                <h3 className="font-medium text-gray-900 mb-3">
+                  Payment Information
+                </h3>
                 <div className="space-y-2">
                   <div className="flex items-center">
                     <CreditCard className="h-4 w-4 text-gray-400 mr-2" />
-                    <span className="text-sm text-gray-600">{order.payment?.paymentMethod}</span>
+                    <span className="text-sm text-gray-600">
+                      {order.payment?.paymentMethod}
+                    </span>
                   </div>
                   <div className="flex items-center">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      order.payment?.paymentStatus === 'SUCCESS' 
-                        ? 'bg-green-100 text-green-800' 
-                        : order.payment?.paymentStatus === 'PENDING'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}>
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        order.payment?.paymentStatus === "SUCCESS"
+                          ? "bg-green-100 text-green-800"
+                          : order.payment?.paymentStatus === "PENDING"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-red-100 text-red-800"
+                      }`}
+                    >
                       {order.payment?.paymentStatus}
                     </span>
                   </div>
@@ -208,11 +262,13 @@ const OrderDetail = () => {
 
               {/* Delivery Address */}
               <div className="border-t pt-6 mt-6">
-                <h3 className="font-medium text-gray-900 mb-3">Delivery Address</h3>
+                <h3 className="font-medium text-gray-900 mb-3">
+                  Delivery Address
+                </h3>
                 <div className="flex items-start">
                   <MapPin className="h-4 w-4 text-gray-400 mr-2 mt-0.5" />
                   <span className="text-sm text-gray-600">
-                    {order.customer?.address || 'Not provided'}
+                    {order.customer?.address || "Not provided"}
                   </span>
                 </div>
               </div>

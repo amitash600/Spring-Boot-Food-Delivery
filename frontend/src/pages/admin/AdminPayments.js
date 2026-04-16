@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { CreditCard, Search, Filter } from 'lucide-react';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { CreditCard, Search, Filter } from "lucide-react";
+import axios from "axios";
+import { API_URL } from "../../config/api";
 
 const AdminPayments = () => {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [methodFilter, setMethodFilter] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [methodFilter, setMethodFilter] = useState("");
 
   useEffect(() => {
     fetchPayments();
@@ -16,28 +17,34 @@ const AdminPayments = () => {
 
   const fetchPayments = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/admin/payments');
+      const response = await axios.get(`${API_URL}/api/admin/payments`);
       setPayments(response.data.data || []);
     } catch (error) {
-      console.error('Error fetching payments:', error);
+      console.error("Error fetching payments:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredPayments = payments.filter(payment => {
+  const filteredPayments = payments.filter((payment) => {
     const matchesSearch = payment.paymentId.toString().includes(searchTerm);
-    const matchesStatus = !statusFilter || payment.paymentStatus === statusFilter;
-    const matchesMethod = !methodFilter || payment.paymentMethod === methodFilter;
+    const matchesStatus =
+      !statusFilter || payment.paymentStatus === statusFilter;
+    const matchesMethod =
+      !methodFilter || payment.paymentMethod === methodFilter;
     return matchesSearch && matchesStatus && matchesMethod;
   });
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'SUCCESS': return 'bg-green-100 text-green-800';
-      case 'PENDING': return 'bg-yellow-100 text-yellow-800';
-      case 'FAILED': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "SUCCESS":
+        return "bg-green-100 text-green-800";
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-800";
+      case "FAILED":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -56,7 +63,9 @@ const AdminPayments = () => {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Payment Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Payment Management
+          </h1>
           <p className="text-gray-600">Manage all payment transactions</p>
         </div>
 
@@ -109,7 +118,7 @@ const AdminPayments = () => {
               All Payments ({filteredPayments.length})
             </h2>
           </div>
-          
+
           {filteredPayments.length === 0 ? (
             <div className="text-center py-12">
               <CreditCard className="h-12 w-12 text-gray-300 mx-auto mb-4" />
@@ -154,14 +163,16 @@ const AdminPayments = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="flex items-center">
                           <CreditCard className="h-4 w-4 text-gray-400 mr-1" />
-                          {payment.paymentMethod.replace('_', ' ')}
+                          {payment.paymentMethod.replace("_", " ")}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         ${payment.amount.toFixed(2)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(payment.paymentStatus)}`}>
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(payment.paymentStatus)}`}
+                        >
                           {payment.paymentStatus}
                         </span>
                       </td>

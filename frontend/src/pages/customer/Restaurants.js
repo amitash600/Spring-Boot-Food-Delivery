@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Search, Star, Clock, MapPin, Filter } from "lucide-react";
 import axios from "axios";
+import { Link } from "react-router-dom";
+import { API_URL } from "../../config/api";
+import { Search, Star, Clock, MapPin, Filter } from "lucide-react";
 import Pagination from "../../components/Pagination";
 import Sorting from "../../components/Sorting";
 
@@ -34,7 +35,7 @@ const Restaurants = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `http://localhost:8080/api/restaurants/page/${page}/${pagination.size}/${sortField}/${sortOrder}`,
+        `${API_URL}/api/restaurants/page/${page}/${pagination.size}/${sortField}/${sortOrder}`,
       );
 
       setRestaurants(response.data.data.content || []);
@@ -48,9 +49,7 @@ const Restaurants = () => {
       console.error("Error fetching restaurants:", error);
       // Fallback to non-paginated API
       try {
-        const fallbackResponse = await axios.get(
-          "http://localhost:8080/api/restaurants",
-        );
+        const fallbackResponse = await axios.get(`${API_URL}/api/restaurants`);
         setRestaurants(fallbackResponse.data.data || []);
       } catch (fallbackError) {
         console.error("Fallback API also failed:", fallbackError);
