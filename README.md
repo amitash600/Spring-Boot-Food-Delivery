@@ -734,95 +734,22 @@ cors.allow.credentials=true
 
 ## 🚀 Deployment
 
-### 🐳 Docker Deployment
-
-#### Backend Dockerfile
-
-```dockerfile
-FROM openjdk:17-jdk-slim
-
-WORKDIR /app
-
-COPY target/spring-boot-final-project-*.jar app.jar
-
-EXPOSE 8080
-
-ENTRYPOINT ["java", "-jar", "app.jar"]
-```
-
-#### Frontend Dockerfile
-
-```dockerfile
-FROM node:18-alpine as build
-
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-
-COPY . .
-RUN npm run build
-
-FROM nginx:alpine
-COPY --from=build /app/build /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/nginx.conf
-
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
-```
-
-#### Docker Compose
-
-```yaml
-version: "3.8"
-
-services:
-  postgres:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: food_delivery
-      POSTGRES_USER: food_delivery_user
-      POSTGRES_PASSWORD: your_secure_password
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  backend:
-    build: .
-    ports:
-      - "8080:8080"
-    environment:
-      DATABASE_URL: jdbc:postgresql://postgres:5432/food_delivery
-      DATABASE_USERNAME: food_delivery_user
-      DATABASE_PASSWORD: your_secure_password
-    depends_on:
-      - postgres
-
-  frontend:
-    build: ./frontend
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-
-volumes:
-  postgres_data:
-```
-
 ### ☁️ Cloud Deployment
 
 #### AWS Deployment
 
 ```bash
-# Build and push to ECR
-aws ecr create-repository --repository-name food-delivery-api
-docker build -t food-delivery-api .
-docker tag food-delivery-api:latest <aws-account-id>.dkr.ecr.<region>.amazonaws.com/food-delivery-api:latest
-docker push <aws-account-id>.dkr.ecr.<region>.amazonaws.com/food-delivery-api:latest
+# Create application
+aws elasticbeanstalk create-application --application-name food-delivery
 
-# Deploy to ECS
-aws ecs create-cluster --cluster-name food-delivery-cluster
-aws ecs run-task --cluster food-delivery-cluster --task-definition food-delivery-task
+# Deploy using JAR file
+# Build the application first: mvn clean package
+# Upload the JAR file from target/ directory to AWS Elastic Beanstalk
+
+# Alternative: Deploy to EC2 directly
+# 1. Create EC2 instance with Java 17
+# 2. Install PostgreSQL on separate RDS instance
+# 3. Upload JAR file and run: java -jar spring-boot-final-project-*.jar
 ```
 
 #### Heroku Deployment
