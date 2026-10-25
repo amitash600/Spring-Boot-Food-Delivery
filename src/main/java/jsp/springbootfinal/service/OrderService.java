@@ -601,7 +601,7 @@ public class OrderService {
 			throw new IllegalStateException("Order cannot be cancelled after preparation started");
 		}
 
-		order.setStatus(Status.CANCELLED);
+		 order.getPayment().setPaymentStatus(newPaymentStatus);
 
 		Order updatedOrder = orderDao.saveOrder(order);
 
