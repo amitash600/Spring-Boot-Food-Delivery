@@ -1,5 +1,9 @@
 package jsp.springbootfinal.service;
 
+import jakarta.mail.MessagingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -29,618 +33,668 @@ import jsp.springbootfinal.error.NoRecordFoundException;
 @Service
 public class OrderService {
 
-	@Autowired
-	private OrderDao orderDao;
-
-	@Autowired
-	private CustomerDao customerDao;
-
-	@Autowired
-	private MenuItemDao menuItemDao;
-
-	public ResponseEntity<ResponseStructure<OrderResponseDTO>> placeOrder(Order order) {
-		if (order.getOrderItems() == null || order.getOrderItems().isEmpty()) {
-			throw new IllegalStateException("Order must contain at least one item");
-		}
-		if (order.getCustomer() == null) {
-			throw new IllegalStateException("Customer must be provided");
-		}
-		Integer customerId = order.getCustomer().getCustomerId();
-		Optional<Customer> customerOptional = customerDao.fetchCustomerById(customerId);
-		if (customerOptional.isEmpty()) {
-			throw new NoRecordFoundException("Customer not found");
-		}
-		Customer customer = customerOptional.get();
-		if (order.getPayment() == null) {
-			throw new IllegalStateException("Payment must be provided before placing order");
-		}
-		double totalAmount = 0;
-		for (OrderItem item : order.getOrderItems()) {
-			if (item.getQuantity() == null || item.getQuantity() < 1) {
-				throw new IllegalStateException("Order quantity must be minimum 1");
-			}
-			if (item.getMenuItem() == null || item.getMenuItem().getItemId() == null) {
-				throw new IllegalStateException("MenuItem must be provided for each order item");
-			}
-			Integer menuItemId = item.getMenuItem().getItemId();
-			Optional<MenuItem> menuItemOptional = menuItemDao.fetchMenuItemById(menuItemId);
-			if (menuItemOptional.isEmpty()) {
-				throw new NoRecordFoundException("Menu item not found");
-			}
-			MenuItem menuItem = menuItemOptional.get();
-			if (!menuItem.getAvailability()) {
-				throw new IllegalStateException(menuItem.getItemName() + " is currently unavailable");
-			}
-			double subTotal = menuItem.getPrice() * item.getQuantity();
-			item.setSubTotal(subTotal);
-			totalAmount += subTotal;
-			item.setMenuItem(menuItem);
-			item.setOrder(order);
-		}
-		order.setTotalAmount(totalAmount);
-		order.getPayment().setAmount(totalAmount);
-		order.setCustomer(customer);
-		if (order.getPayment().getPaymentStatus() == PaymentStatus.FAILED) {
-			order.setStatus(Status.PENDING_PAYMENT);
-		} else {
-			order.setStatus(Status.PLACED);
-		}
-		order.getPayment().setOrder(order);
-		Order savedOrder = orderDao.saveOrder(order);
-		/* -------- DTO CONVERSION START -------- */ CustomerResponseDTO customerDTO = new CustomerResponseDTO();
-		customerDTO.setCustomerId(savedOrder.getCustomer().getCustomerId());
-		customerDTO.setCustomerName(savedOrder.getCustomer().getCustomerName());
-		OrderResponseDTO orderDTO = new OrderResponseDTO();
-		orderDTO.setOrderId(savedOrder.getOrderId());
-		orderDTO.setOrderDateTime(savedOrder.getOrderDateTime());
-		orderDTO.setStatus(savedOrder.getStatus());
-		orderDTO.setTotalAmount(savedOrder.getTotalAmount());
-		orderDTO.setCustomer(customerDTO);
-		orderDTO.setPayment(savedOrder.getPayment());
-
-		List<OrderItemResponseDTO> itemDTOList = new ArrayList<>();
-
-		for (OrderItem item : savedOrder.getOrderItems()) {
-
-			OrderItemResponseDTO itemDTO = new OrderItemResponseDTO();
-
-			itemDTO.setOrderItemId(item.getOrderItemId());
-			itemDTO.setItemName(item.getMenuItem().getItemName());
-			itemDTO.setPrice(item.getMenuItem().getPrice());
-			itemDTO.setQuantity(item.getQuantity());
-			itemDTO.setSubTotal(item.getSubTotal());
-
-			itemDTOList.add(itemDTO);
-		}
-
-		orderDTO.setOrderItems(itemDTOList);
-
-		/* -------- DTO CONVERSION END -------- */
-		ResponseStructure<OrderResponseDTO> res = new ResponseStructure<>();
-		res.setStatusCode(HttpStatus.CREATED.value());
-		res.setMessage("Order placed successfully");
-		res.setData(orderDTO);
-		return new ResponseEntity<ResponseStructure<OrderResponseDTO>>(res, HttpStatus.CREATED);
-	}
-
-	public ResponseEntity<ResponseStructure<List<OrderResponseDTO>>> fetchAllOrders() {
-
-		List<Order> orders = orderDao.fetchAllOrders();
-
-		if (orders.isEmpty()) {
-			throw new NoRecordFoundException("No orders found");
-		}
+   private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
+
+   @Autowired
+   private EmailService emailService;
+
+   @Autowired
+   private OrderDao orderDao;
+
+   @Autowired
+   private CustomerDao customerDao;
+
+   @Autowired
+   private MenuItemDao menuItemDao;
+
+   public ResponseEntity<ResponseStructure<OrderResponseDTO>> placeOrder(Order order) {
+      if (order.getOrderItems() == null || order.getOrderItems().isEmpty()) {
+         throw new IllegalStateException("Order must contain at least one item");
+      }
+      if (order.getCustomer() == null) {
+         throw new IllegalStateException("Customer must be provided");
+      }
+      Integer customerId = order.getCustomer().getCustomerId();
+      Optional<Customer> customerOptional = customerDao.fetchCustomerById(customerId);
+      if (customerOptional.isEmpty()) {
+         throw new NoRecordFoundException("Customer not found");
+      }
+      Customer customer = customerOptional.get();
+      if (order.getPayment() == null) {
+         throw new IllegalStateException("Payment must be provided before placing order");
+      }
+      double totalAmount = 0;
+      for (OrderItem item : order.getOrderItems()) {
+         if (item.getQuantity() == null || item.getQuantity() < 1) {
+            throw new IllegalStateException("Order quantity must be minimum 1");
+         }
+         if (item.getMenuItem() == null || item.getMenuItem().getItemId() == null) {
+            throw new IllegalStateException("MenuItem must be provided for each order item");
+         }
+         Integer menuItemId = item.getMenuItem().getItemId();
+         Optional<MenuItem> menuItemOptional = menuItemDao.fetchMenuItemById(menuItemId);
+         if (menuItemOptional.isEmpty()) {
+            throw new NoRecordFoundException("Menu item not found");
+         }
+         MenuItem menuItem = menuItemOptional.get();
+         if (!menuItem.getAvailability()) {
+            throw new IllegalStateException(menuItem.getItemName() + " is currently unavailable");
+         }
+         double subTotal = menuItem.getPrice() * item.getQuantity();
+         item.setSubTotal(subTotal);
+         totalAmount += subTotal;
+         item.setMenuItem(menuItem);
+         item.setOrder(order);
+      }
+      order.setTotalAmount(totalAmount);
+      order.getPayment().setAmount(totalAmount);
+      order.setCustomer(customer);
+      if (order.getPayment().getPaymentStatus() == PaymentStatus.FAILED) {
+         order.setStatus(Status.PENDING_PAYMENT);
+      } else {
+         order.setStatus(Status.PLACED);
+      }
+      order.getPayment().setOrder(order);
+      Order savedOrder = orderDao.saveOrder(order);
+
+      // Send email when customer places a new order
+      try {
+         Customer orderCustomer = savedOrder.getCustomer();
+
+         emailService.sendOrderStatusEmail(
+                 orderCustomer.getEmailId(),
+                 orderCustomer.getCustomerName(),
+                 savedOrder.getOrderId(),
+                 savedOrder.getStatus()
+         );
+
+         logger.info(
+                 "Order placement email sent for order {}",
+                 savedOrder.getOrderId()
+         );
+
+      } catch (Exception e) {
+         logger.error(
+                 "Failed to send order placement email for order {}",
+                 savedOrder.getOrderId(),
+                 e
+         );
+      }
+
+
+
+
+      /* -------- DTO CONVERSION START -------- */ CustomerResponseDTO customerDTO = new CustomerResponseDTO();
+      customerDTO.setCustomerId(savedOrder.getCustomer().getCustomerId());
+      customerDTO.setCustomerName(savedOrder.getCustomer().getCustomerName());
+      OrderResponseDTO orderDTO = new OrderResponseDTO();
+      orderDTO.setOrderId(savedOrder.getOrderId());
+      orderDTO.setOrderDateTime(savedOrder.getOrderDateTime());
+      orderDTO.setStatus(savedOrder.getStatus());
+      orderDTO.setTotalAmount(savedOrder.getTotalAmount());
+      orderDTO.setCustomer(customerDTO);
+      orderDTO.setPayment(savedOrder.getPayment());
 
-		List<OrderResponseDTO> orderDTOList = new ArrayList<>();
+      List<OrderItemResponseDTO> itemDTOList = new ArrayList<>();
 
-		for (Order order : orders) {
+      for (OrderItem item : savedOrder.getOrderItems()) {
 
-			// Customer DTO
-			CustomerResponseDTO customerDTO = new CustomerResponseDTO();
-			customerDTO.setCustomerId(order.getCustomer().getCustomerId());
-			customerDTO.setCustomerName(order.getCustomer().getCustomerName());
+         OrderItemResponseDTO itemDTO = new OrderItemResponseDTO();
 
-			// OrderItem DTO list
-			List<OrderItemResponseDTO> itemDTOList = new ArrayList<>();
+         itemDTO.setOrderItemId(item.getOrderItemId());
+         itemDTO.setItemName(item.getMenuItem().getItemName());
+         itemDTO.setPrice(item.getMenuItem().getPrice());
+         itemDTO.setQuantity(item.getQuantity());
+         itemDTO.setSubTotal(item.getSubTotal());
 
-			for (OrderItem item : order.getOrderItems()) {
+         itemDTOList.add(itemDTO);
+      }
 
-				OrderItemResponseDTO itemDTO = new OrderItemResponseDTO();
+      orderDTO.setOrderItems(itemDTOList);
 
-				itemDTO.setOrderItemId(item.getOrderItemId());
-				itemDTO.setItemName(item.getMenuItem().getItemName());
-				itemDTO.setPrice(item.getMenuItem().getPrice());
-				itemDTO.setQuantity(item.getQuantity());
-				itemDTO.setSubTotal(item.getSubTotal());
+      /* -------- DTO CONVERSION END -------- */
+      ResponseStructure<OrderResponseDTO> res = new ResponseStructure<>();
+      res.setStatusCode(HttpStatus.CREATED.value());
+      res.setMessage("Order placed successfully");
+      res.setData(orderDTO);
+      return new ResponseEntity<ResponseStructure<OrderResponseDTO>>(res, HttpStatus.CREATED);
+   }
 
-				itemDTOList.add(itemDTO);
-			}
+   public ResponseEntity<ResponseStructure<List<OrderResponseDTO>>> fetchAllOrders() {
 
-			// Order DTO
-			OrderResponseDTO orderDTO = new OrderResponseDTO();
+      List<Order> orders = orderDao.fetchAllOrders();
 
-			orderDTO.setOrderId(order.getOrderId());
-			orderDTO.setOrderDateTime(order.getOrderDateTime());
-			orderDTO.setStatus(order.getStatus());
-			orderDTO.setTotalAmount(order.getTotalAmount());
+      if (orders.isEmpty()) {
+         throw new NoRecordFoundException("No orders found");
+      }
 
-			orderDTO.setCustomer(customerDTO);
-			orderDTO.setPayment(order.getPayment());
-			orderDTO.setOrderItems(itemDTOList);
+      List<OrderResponseDTO> orderDTOList = new ArrayList<>();
 
-			orderDTOList.add(orderDTO);
-		}
+      for (Order order : orders) {
 
-		ResponseStructure<List<OrderResponseDTO>> res = new ResponseStructure<>();
+         // Customer DTO
+         CustomerResponseDTO customerDTO = new CustomerResponseDTO();
+         customerDTO.setCustomerId(order.getCustomer().getCustomerId());
+         customerDTO.setCustomerName(order.getCustomer().getCustomerName());
 
-		res.setStatusCode(HttpStatus.OK.value());
-		res.setMessage("All orders fetched successfully");
-		res.setData(orderDTOList);
+         // OrderItem DTO list
+         List<OrderItemResponseDTO> itemDTOList = new ArrayList<>();
 
-		return new ResponseEntity<>(res, HttpStatus.OK);
-	}
+         for (OrderItem item : order.getOrderItems()) {
 
-	public ResponseEntity<ResponseStructure<OrderResponseDTO>> fetchOrderById(Integer orderId) {
+            OrderItemResponseDTO itemDTO = new OrderItemResponseDTO();
 
-		Optional<Order> optionalOrder = orderDao.fetchOrderById(orderId);
+            itemDTO.setOrderItemId(item.getOrderItemId());
+            itemDTO.setItemName(item.getMenuItem().getItemName());
+            itemDTO.setPrice(item.getMenuItem().getPrice());
+            itemDTO.setQuantity(item.getQuantity());
+            itemDTO.setSubTotal(item.getSubTotal());
 
-		if (optionalOrder.isEmpty()) {
-			throw new NoRecordFoundException("Order not found");
-		}
+            itemDTOList.add(itemDTO);
+         }
 
-		Order order = optionalOrder.get();
+         // Order DTO
+         OrderResponseDTO orderDTO = new OrderResponseDTO();
 
-		// Customer DTO
-		CustomerResponseDTO customerDTO = new CustomerResponseDTO();
-		customerDTO.setCustomerId(order.getCustomer().getCustomerId());
-		customerDTO.setCustomerName(order.getCustomer().getCustomerName());
+         orderDTO.setOrderId(order.getOrderId());
+         orderDTO.setOrderDateTime(order.getOrderDateTime());
+         orderDTO.setStatus(order.getStatus());
+         orderDTO.setTotalAmount(order.getTotalAmount());
 
-		// OrderItem DTO list
-		List<OrderItemResponseDTO> itemDTOList = new ArrayList<>();
+         orderDTO.setCustomer(customerDTO);
+         orderDTO.setPayment(order.getPayment());
+         orderDTO.setOrderItems(itemDTOList);
 
-		for (OrderItem item : order.getOrderItems()) {
+         orderDTOList.add(orderDTO);
+      }
 
-			OrderItemResponseDTO itemDTO = new OrderItemResponseDTO();
+      ResponseStructure<List<OrderResponseDTO>> res = new ResponseStructure<>();
 
-			itemDTO.setOrderItemId(item.getOrderItemId());
-			itemDTO.setItemName(item.getMenuItem().getItemName());
-			itemDTO.setPrice(item.getMenuItem().getPrice());
-			itemDTO.setQuantity(item.getQuantity());
-			itemDTO.setSubTotal(item.getSubTotal());
+      res.setStatusCode(HttpStatus.OK.value());
+      res.setMessage("All orders fetched successfully");
+      res.setData(orderDTOList);
 
-			itemDTOList.add(itemDTO);
-		}
+      return new ResponseEntity<>(res, HttpStatus.OK);
+   }
 
-		// Order DTO
-		OrderResponseDTO orderDTO = new OrderResponseDTO();
+   public ResponseEntity<ResponseStructure<OrderResponseDTO>> fetchOrderById(Integer orderId) {
 
-		orderDTO.setOrderId(order.getOrderId());
-		orderDTO.setOrderDateTime(order.getOrderDateTime());
-		orderDTO.setStatus(order.getStatus());
-		orderDTO.setTotalAmount(order.getTotalAmount());
-		orderDTO.setCustomer(customerDTO);
-		orderDTO.setPayment(order.getPayment());
-		orderDTO.setOrderItems(itemDTOList);
+      Optional<Order> optionalOrder = orderDao.fetchOrderById(orderId);
 
-		ResponseStructure<OrderResponseDTO> res = new ResponseStructure<>();
+      if (optionalOrder.isEmpty()) {
+         throw new NoRecordFoundException("Order not found");
+      }
 
-		res.setStatusCode(HttpStatus.OK.value());
-		res.setMessage("Order fetched successfully");
-		res.setData(orderDTO);
+      Order order = optionalOrder.get();
 
-		return new ResponseEntity<ResponseStructure<OrderResponseDTO>>(res, HttpStatus.OK);
-	}
+      // Customer DTO
+      CustomerResponseDTO customerDTO = new CustomerResponseDTO();
+      customerDTO.setCustomerId(order.getCustomer().getCustomerId());
+      customerDTO.setCustomerName(order.getCustomer().getCustomerName());
 
-	public ResponseEntity<ResponseStructure<List<OrderResponseDTO>>> fetchOrdersOfCustomer(Integer customerId) {
+      // OrderItem DTO list
+      List<OrderItemResponseDTO> itemDTOList = new ArrayList<>();
 
-		List<Order> orders = orderDao.fetchOrdersOfCustomer(customerId);
+      for (OrderItem item : order.getOrderItems()) {
 
-		if (orders.isEmpty()) {
-			throw new NoRecordFoundException("No orders found for this customer");
-		}
+         OrderItemResponseDTO itemDTO = new OrderItemResponseDTO();
 
-		List<OrderResponseDTO> orderDTOList = new ArrayList<>();
+         itemDTO.setOrderItemId(item.getOrderItemId());
+         itemDTO.setItemName(item.getMenuItem().getItemName());
+         itemDTO.setPrice(item.getMenuItem().getPrice());
+         itemDTO.setQuantity(item.getQuantity());
+         itemDTO.setSubTotal(item.getSubTotal());
 
-		for (Order order : orders) {
+         itemDTOList.add(itemDTO);
+      }
 
-			CustomerResponseDTO customerDTO = new CustomerResponseDTO();
-			customerDTO.setCustomerId(order.getCustomer().getCustomerId());
-			customerDTO.setCustomerName(order.getCustomer().getCustomerName());
+      // Order DTO
+      OrderResponseDTO orderDTO = new OrderResponseDTO();
 
-			List<OrderItemResponseDTO> itemDTOList = new ArrayList<>();
+      orderDTO.setOrderId(order.getOrderId());
+      orderDTO.setOrderDateTime(order.getOrderDateTime());
+      orderDTO.setStatus(order.getStatus());
+      orderDTO.setTotalAmount(order.getTotalAmount());
+      orderDTO.setCustomer(customerDTO);
+      orderDTO.setPayment(order.getPayment());
+      orderDTO.setOrderItems(itemDTOList);
 
-			for (OrderItem item : order.getOrderItems()) {
+      ResponseStructure<OrderResponseDTO> res = new ResponseStructure<>();
 
-				OrderItemResponseDTO itemDTO = new OrderItemResponseDTO();
+      res.setStatusCode(HttpStatus.OK.value());
+      res.setMessage("Order fetched successfully");
+      res.setData(orderDTO);
 
-				itemDTO.setOrderItemId(item.getOrderItemId());
-				itemDTO.setItemName(item.getMenuItem().getItemName());
-				itemDTO.setPrice(item.getMenuItem().getPrice());
-				itemDTO.setQuantity(item.getQuantity());
-				itemDTO.setSubTotal(item.getSubTotal());
+      return new ResponseEntity<ResponseStructure<OrderResponseDTO>>(res, HttpStatus.OK);
+   }
 
-				itemDTOList.add(itemDTO);
-			}
+   public ResponseEntity<ResponseStructure<List<OrderResponseDTO>>> fetchOrdersOfCustomer(Integer customerId) {
 
-			OrderResponseDTO orderDTO = new OrderResponseDTO();
+      List<Order> orders = orderDao.fetchOrdersOfCustomer(customerId);
 
-			orderDTO.setOrderId(order.getOrderId());
-			orderDTO.setOrderDateTime(order.getOrderDateTime());
-			orderDTO.setStatus(order.getStatus());
-			orderDTO.setTotalAmount(order.getTotalAmount());
+      if (orders.isEmpty()) {
+         throw new NoRecordFoundException("No orders found for this customer");
+      }
 
-			orderDTO.setCustomer(customerDTO);
-			orderDTO.setPayment(order.getPayment());
-			orderDTO.setOrderItems(itemDTOList);
+      List<OrderResponseDTO> orderDTOList = new ArrayList<>();
 
-			orderDTOList.add(orderDTO);
-		}
+      for (Order order : orders) {
 
-		ResponseStructure<List<OrderResponseDTO>> res = new ResponseStructure<>();
+         CustomerResponseDTO customerDTO = new CustomerResponseDTO();
+         customerDTO.setCustomerId(order.getCustomer().getCustomerId());
+         customerDTO.setCustomerName(order.getCustomer().getCustomerName());
 
-		res.setStatusCode(HttpStatus.OK.value());
-		res.setMessage("Customer orders fetched successfully");
-		res.setData(orderDTOList);
+         List<OrderItemResponseDTO> itemDTOList = new ArrayList<>();
 
-		return new ResponseEntity<ResponseStructure<List<OrderResponseDTO>>>(res, HttpStatus.OK);
-	}
+         for (OrderItem item : order.getOrderItems()) {
 
-	public ResponseEntity<ResponseStructure<List<OrderResponseDTO>>> fetchOrdersByStatus(Status status) {
+            OrderItemResponseDTO itemDTO = new OrderItemResponseDTO();
 
-		List<Order> orders = orderDao.fetchOrdersByStatus(status);
+            itemDTO.setOrderItemId(item.getOrderItemId());
+            itemDTO.setItemName(item.getMenuItem().getItemName());
+            itemDTO.setPrice(item.getMenuItem().getPrice());
+            itemDTO.setQuantity(item.getQuantity());
+            itemDTO.setSubTotal(item.getSubTotal());
 
-		if (orders.isEmpty()) {
-			throw new NoRecordFoundException("No orders found with status " + status);
-		}
+            itemDTOList.add(itemDTO);
+         }
 
-		List<OrderResponseDTO> orderDTOList = new ArrayList<>();
+         OrderResponseDTO orderDTO = new OrderResponseDTO();
 
-		for (Order order : orders) {
+         orderDTO.setOrderId(order.getOrderId());
+         orderDTO.setOrderDateTime(order.getOrderDateTime());
+         orderDTO.setStatus(order.getStatus());
+         orderDTO.setTotalAmount(order.getTotalAmount());
 
-			CustomerResponseDTO customerDTO = new CustomerResponseDTO();
-			customerDTO.setCustomerId(order.getCustomer().getCustomerId());
-			customerDTO.setCustomerName(order.getCustomer().getCustomerName());
+         orderDTO.setCustomer(customerDTO);
+         orderDTO.setPayment(order.getPayment());
+         orderDTO.setOrderItems(itemDTOList);
 
-			List<OrderItemResponseDTO> itemDTOList = new ArrayList<>();
+         orderDTOList.add(orderDTO);
+      }
 
-			for (OrderItem item : order.getOrderItems()) {
+      ResponseStructure<List<OrderResponseDTO>> res = new ResponseStructure<>();
 
-				OrderItemResponseDTO itemDTO = new OrderItemResponseDTO();
+      res.setStatusCode(HttpStatus.OK.value());
+      res.setMessage("Customer orders fetched successfully");
+      res.setData(orderDTOList);
 
-				itemDTO.setOrderItemId(item.getOrderItemId());
-				itemDTO.setItemName(item.getMenuItem().getItemName());
-				itemDTO.setPrice(item.getMenuItem().getPrice());
-				itemDTO.setQuantity(item.getQuantity());
-				itemDTO.setSubTotal(item.getSubTotal());
+      return new ResponseEntity<ResponseStructure<List<OrderResponseDTO>>>(res, HttpStatus.OK);
+   }
 
-				itemDTOList.add(itemDTO);
-			}
+   public ResponseEntity<ResponseStructure<List<OrderResponseDTO>>> fetchOrdersByStatus(Status status) {
 
-			OrderResponseDTO orderDTO = new OrderResponseDTO();
+      List<Order> orders = orderDao.fetchOrdersByStatus(status);
 
-			orderDTO.setOrderId(order.getOrderId());
-			orderDTO.setOrderDateTime(order.getOrderDateTime());
-			orderDTO.setStatus(order.getStatus());
-			orderDTO.setTotalAmount(order.getTotalAmount());
+      if (orders.isEmpty()) {
+         throw new NoRecordFoundException("No orders found with status " + status);
+      }
 
-			orderDTO.setCustomer(customerDTO);
-			orderDTO.setPayment(order.getPayment());
-			orderDTO.setOrderItems(itemDTOList);
+      List<OrderResponseDTO> orderDTOList = new ArrayList<>();
 
-			orderDTOList.add(orderDTO);
-		}
+      for (Order order : orders) {
 
-		ResponseStructure<List<OrderResponseDTO>> res = new ResponseStructure<>();
+         CustomerResponseDTO customerDTO = new CustomerResponseDTO();
+         customerDTO.setCustomerId(order.getCustomer().getCustomerId());
+         customerDTO.setCustomerName(order.getCustomer().getCustomerName());
 
-		res.setStatusCode(HttpStatus.OK.value());
-		res.setMessage("Orders fetched successfully by status");
-		res.setData(orderDTOList);
+         List<OrderItemResponseDTO> itemDTOList = new ArrayList<>();
 
-		return new ResponseEntity<>(res, HttpStatus.OK);
-	}
+         for (OrderItem item : order.getOrderItems()) {
 
-	public ResponseEntity<ResponseStructure<List<OrderResponseDTO>>> fetchOrdersByDate(LocalDate date) {
+            OrderItemResponseDTO itemDTO = new OrderItemResponseDTO();
 
-		LocalDateTime start = date.atStartOfDay();
-		LocalDateTime end = date.atTime(23, 59, 59);
+            itemDTO.setOrderItemId(item.getOrderItemId());
+            itemDTO.setItemName(item.getMenuItem().getItemName());
+            itemDTO.setPrice(item.getMenuItem().getPrice());
+            itemDTO.setQuantity(item.getQuantity());
+            itemDTO.setSubTotal(item.getSubTotal());
 
-		List<Order> orders = orderDao.fetchOrdersByDate(start, end);
+            itemDTOList.add(itemDTO);
+         }
 
-		if (orders.isEmpty()) {
-			throw new NoRecordFoundException("No orders found on date " + date);
-		}
+         OrderResponseDTO orderDTO = new OrderResponseDTO();
 
-		List<OrderResponseDTO> orderDTOList = new ArrayList<>();
+         orderDTO.setOrderId(order.getOrderId());
+         orderDTO.setOrderDateTime(order.getOrderDateTime());
+         orderDTO.setStatus(order.getStatus());
+         orderDTO.setTotalAmount(order.getTotalAmount());
 
-		for (Order order : orders) {
+         orderDTO.setCustomer(customerDTO);
+         orderDTO.setPayment(order.getPayment());
+         orderDTO.setOrderItems(itemDTOList);
 
-			CustomerResponseDTO customerDTO = new CustomerResponseDTO();
-			customerDTO.setCustomerId(order.getCustomer().getCustomerId());
-			customerDTO.setCustomerName(order.getCustomer().getCustomerName());
+         orderDTOList.add(orderDTO);
+      }
 
-			List<OrderItemResponseDTO> itemDTOList = new ArrayList<>();
+      ResponseStructure<List<OrderResponseDTO>> res = new ResponseStructure<>();
 
-			for (OrderItem item : order.getOrderItems()) {
+      res.setStatusCode(HttpStatus.OK.value());
+      res.setMessage("Orders fetched successfully by status");
+      res.setData(orderDTOList);
 
-				OrderItemResponseDTO itemDTO = new OrderItemResponseDTO();
+      return new ResponseEntity<>(res, HttpStatus.OK);
+   }
 
-				itemDTO.setOrderItemId(item.getOrderItemId());
-				itemDTO.setItemName(item.getMenuItem().getItemName());
-				itemDTO.setPrice(item.getMenuItem().getPrice());
-				itemDTO.setQuantity(item.getQuantity());
-				itemDTO.setSubTotal(item.getSubTotal());
+   public ResponseEntity<ResponseStructure<List<OrderResponseDTO>>> fetchOrdersByDate(LocalDate date) {
 
-				itemDTOList.add(itemDTO);
-			}
+      LocalDateTime start = date.atStartOfDay();
+      LocalDateTime end = date.atTime(23, 59, 59);
 
-			OrderResponseDTO orderDTO = new OrderResponseDTO();
+      List<Order> orders = orderDao.fetchOrdersByDate(start, end);
 
-			orderDTO.setOrderId(order.getOrderId());
-			orderDTO.setOrderDateTime(order.getOrderDateTime());
-			orderDTO.setStatus(order.getStatus());
-			orderDTO.setTotalAmount(order.getTotalAmount());
+      if (orders.isEmpty()) {
+         throw new NoRecordFoundException("No orders found on date " + date);
+      }
 
-			orderDTO.setCustomer(customerDTO);
-			orderDTO.setPayment(order.getPayment());
-			orderDTO.setOrderItems(itemDTOList);
+      List<OrderResponseDTO> orderDTOList = new ArrayList<>();
 
-			orderDTOList.add(orderDTO);
-		}
+      for (Order order : orders) {
 
-		ResponseStructure<List<OrderResponseDTO>> res = new ResponseStructure<>();
+         CustomerResponseDTO customerDTO = new CustomerResponseDTO();
+         customerDTO.setCustomerId(order.getCustomer().getCustomerId());
+         customerDTO.setCustomerName(order.getCustomer().getCustomerName());
 
-		res.setStatusCode(HttpStatus.OK.value());
-		res.setMessage("Orders fetched successfully by date");
-		res.setData(orderDTOList);
+         List<OrderItemResponseDTO> itemDTOList = new ArrayList<>();
 
-		return new ResponseEntity<ResponseStructure<List<OrderResponseDTO>>>(res, HttpStatus.OK);
-	}
+         for (OrderItem item : order.getOrderItems()) {
 
-	public ResponseEntity<ResponseStructure<List<OrderResponseDTO>>> fetchOrdersBetweenTotalAmountRange(
-			Double minAmount, Double maxAmount) {
+            OrderItemResponseDTO itemDTO = new OrderItemResponseDTO();
 
-		List<Order> orders = orderDao.fetchOrdersBetweenTotalAmountRange(minAmount, maxAmount);
+            itemDTO.setOrderItemId(item.getOrderItemId());
+            itemDTO.setItemName(item.getMenuItem().getItemName());
+            itemDTO.setPrice(item.getMenuItem().getPrice());
+            itemDTO.setQuantity(item.getQuantity());
+            itemDTO.setSubTotal(item.getSubTotal());
 
-		if (orders.isEmpty()) {
-			throw new NoRecordFoundException("No orders found between amount " + minAmount + " and " + maxAmount);
-		}
+            itemDTOList.add(itemDTO);
+         }
 
-		List<OrderResponseDTO> orderDTOList = new ArrayList<>();
+         OrderResponseDTO orderDTO = new OrderResponseDTO();
 
-		for (Order order : orders) {
+         orderDTO.setOrderId(order.getOrderId());
+         orderDTO.setOrderDateTime(order.getOrderDateTime());
+         orderDTO.setStatus(order.getStatus());
+         orderDTO.setTotalAmount(order.getTotalAmount());
 
-			CustomerResponseDTO customerDTO = new CustomerResponseDTO();
-			customerDTO.setCustomerId(order.getCustomer().getCustomerId());
-			customerDTO.setCustomerName(order.getCustomer().getCustomerName());
+         orderDTO.setCustomer(customerDTO);
+         orderDTO.setPayment(order.getPayment());
+         orderDTO.setOrderItems(itemDTOList);
 
-			List<OrderItemResponseDTO> itemDTOList = new ArrayList<>();
+         orderDTOList.add(orderDTO);
+      }
 
-			for (OrderItem item : order.getOrderItems()) {
+      ResponseStructure<List<OrderResponseDTO>> res = new ResponseStructure<>();
 
-				OrderItemResponseDTO itemDTO = new OrderItemResponseDTO();
+      res.setStatusCode(HttpStatus.OK.value());
+      res.setMessage("Orders fetched successfully by date");
+      res.setData(orderDTOList);
 
-				itemDTO.setOrderItemId(item.getOrderItemId());
-				itemDTO.setItemName(item.getMenuItem().getItemName());
-				itemDTO.setPrice(item.getMenuItem().getPrice());
-				itemDTO.setQuantity(item.getQuantity());
-				itemDTO.setSubTotal(item.getSubTotal());
+      return new ResponseEntity<ResponseStructure<List<OrderResponseDTO>>>(res, HttpStatus.OK);
+   }
 
-				itemDTOList.add(itemDTO);
-			}
+   public ResponseEntity<ResponseStructure<List<OrderResponseDTO>>> fetchOrdersBetweenTotalAmountRange(
+           Double minAmount, Double maxAmount) {
 
-			OrderResponseDTO orderDTO = new OrderResponseDTO();
+      List<Order> orders = orderDao.fetchOrdersBetweenTotalAmountRange(minAmount, maxAmount);
 
-			orderDTO.setOrderId(order.getOrderId());
-			orderDTO.setOrderDateTime(order.getOrderDateTime());
-			orderDTO.setStatus(order.getStatus());
-			orderDTO.setTotalAmount(order.getTotalAmount());
+      if (orders.isEmpty()) {
+         throw new NoRecordFoundException("No orders found between amount " + minAmount + " and " + maxAmount);
+      }
 
-			orderDTO.setCustomer(customerDTO);
-			orderDTO.setPayment(order.getPayment());
-			orderDTO.setOrderItems(itemDTOList);
+      List<OrderResponseDTO> orderDTOList = new ArrayList<>();
 
-			orderDTOList.add(orderDTO);
-		}
+      for (Order order : orders) {
 
-		ResponseStructure<List<OrderResponseDTO>> res = new ResponseStructure<>();
+         CustomerResponseDTO customerDTO = new CustomerResponseDTO();
+         customerDTO.setCustomerId(order.getCustomer().getCustomerId());
+         customerDTO.setCustomerName(order.getCustomer().getCustomerName());
 
-		res.setStatusCode(HttpStatus.OK.value());
-		res.setMessage("Orders fetched successfully between total amount range");
-		res.setData(orderDTOList);
+         List<OrderItemResponseDTO> itemDTOList = new ArrayList<>();
 
-		return new ResponseEntity<ResponseStructure<List<OrderResponseDTO>>>(res, HttpStatus.OK);
-	}
+         for (OrderItem item : order.getOrderItems()) {
 
-	public ResponseEntity<ResponseStructure<List<OrderResponseDTO>>> fetchOrdersByRestaurant(Integer restaurantId) {
+            OrderItemResponseDTO itemDTO = new OrderItemResponseDTO();
 
-		List<Order> orders = orderDao.fetchOrdersByRestaurant(restaurantId);
+            itemDTO.setOrderItemId(item.getOrderItemId());
+            itemDTO.setItemName(item.getMenuItem().getItemName());
+            itemDTO.setPrice(item.getMenuItem().getPrice());
+            itemDTO.setQuantity(item.getQuantity());
+            itemDTO.setSubTotal(item.getSubTotal());
 
-		if (orders.isEmpty()) {
-			throw new NoRecordFoundException("No orders found for restaurant id " + restaurantId);
-		}
+            itemDTOList.add(itemDTO);
+         }
 
-		List<OrderResponseDTO> orderDTOList = new ArrayList<>();
+         OrderResponseDTO orderDTO = new OrderResponseDTO();
 
-		for (Order order : orders) {
+         orderDTO.setOrderId(order.getOrderId());
+         orderDTO.setOrderDateTime(order.getOrderDateTime());
+         orderDTO.setStatus(order.getStatus());
+         orderDTO.setTotalAmount(order.getTotalAmount());
 
-			CustomerResponseDTO customerDTO = new CustomerResponseDTO();
-			customerDTO.setCustomerId(order.getCustomer().getCustomerId());
-			customerDTO.setCustomerName(order.getCustomer().getCustomerName());
+         orderDTO.setCustomer(customerDTO);
+         orderDTO.setPayment(order.getPayment());
+         orderDTO.setOrderItems(itemDTOList);
 
-			List<OrderItemResponseDTO> itemDTOList = new ArrayList<>();
+         orderDTOList.add(orderDTO);
+      }
 
-			for (OrderItem item : order.getOrderItems()) {
+      ResponseStructure<List<OrderResponseDTO>> res = new ResponseStructure<>();
 
-				OrderItemResponseDTO itemDTO = new OrderItemResponseDTO();
+      res.setStatusCode(HttpStatus.OK.value());
+      res.setMessage("Orders fetched successfully between total amount range");
+      res.setData(orderDTOList);
 
-				itemDTO.setOrderItemId(item.getOrderItemId());
-				itemDTO.setItemName(item.getMenuItem().getItemName());
-				itemDTO.setPrice(item.getMenuItem().getPrice());
-				itemDTO.setQuantity(item.getQuantity());
-				itemDTO.setSubTotal(item.getSubTotal());
+      return new ResponseEntity<ResponseStructure<List<OrderResponseDTO>>>(res, HttpStatus.OK);
+   }
 
-				itemDTOList.add(itemDTO);
-			}
+   public ResponseEntity<ResponseStructure<List<OrderResponseDTO>>> fetchOrdersByRestaurant(Integer restaurantId) {
 
-			OrderResponseDTO orderDTO = new OrderResponseDTO();
+      List<Order> orders = orderDao.fetchOrdersByRestaurant(restaurantId);
 
-			orderDTO.setOrderId(order.getOrderId());
-			orderDTO.setOrderDateTime(order.getOrderDateTime());
-			orderDTO.setStatus(order.getStatus());
-			orderDTO.setTotalAmount(order.getTotalAmount());
+      if (orders.isEmpty()) {
+         throw new NoRecordFoundException("No orders found for restaurant id " + restaurantId);
+      }
 
-			orderDTO.setCustomer(customerDTO);
-			orderDTO.setPayment(order.getPayment());
-			orderDTO.setOrderItems(itemDTOList);
+      List<OrderResponseDTO> orderDTOList = new ArrayList<>();
 
-			orderDTOList.add(orderDTO);
-		}
+      for (Order order : orders) {
 
-		ResponseStructure<List<OrderResponseDTO>> res = new ResponseStructure<>();
+         CustomerResponseDTO customerDTO = new CustomerResponseDTO();
+         customerDTO.setCustomerId(order.getCustomer().getCustomerId());
+         customerDTO.setCustomerName(order.getCustomer().getCustomerName());
 
-		res.setStatusCode(HttpStatus.OK.value());
-		res.setMessage("Orders fetched successfully for restaurant");
-		res.setData(orderDTOList);
+         List<OrderItemResponseDTO> itemDTOList = new ArrayList<>();
 
-		return new ResponseEntity<ResponseStructure<List<OrderResponseDTO>>>(res, HttpStatus.OK);
-	}
+         for (OrderItem item : order.getOrderItems()) {
 
-	public ResponseEntity<ResponseStructure<OrderResponseDTO>> updateOrderStatus(Integer orderId, Status newStatus) {
+            OrderItemResponseDTO itemDTO = new OrderItemResponseDTO();
 
-		Optional<Order> optional = orderDao.fetchOrderById(orderId);
+            itemDTO.setOrderItemId(item.getOrderItemId());
+            itemDTO.setItemName(item.getMenuItem().getItemName());
+            itemDTO.setPrice(item.getMenuItem().getPrice());
+            itemDTO.setQuantity(item.getQuantity());
+            itemDTO.setSubTotal(item.getSubTotal());
 
-		if (optional.isEmpty()) {
-			throw new NoRecordFoundException("Order not found with id " + orderId);
-		}
+            itemDTOList.add(itemDTO);
+         }
 
-		Order order = optional.get();
-		Status currentStatus = order.getStatus();
+         OrderResponseDTO orderDTO = new OrderResponseDTO();
 
-		// Handle cancellation separately
-		if (newStatus == Status.CANCELLED) {
+         orderDTO.setOrderId(order.getOrderId());
+         orderDTO.setOrderDateTime(order.getOrderDateTime());
+         orderDTO.setStatus(order.getStatus());
+         orderDTO.setTotalAmount(order.getTotalAmount());
 
-			if (currentStatus == Status.PREPARING || currentStatus == Status.DELIVERED) {
-				throw new IllegalStateException("Order cannot be cancelled after preparation started");
-			}
+         orderDTO.setCustomer(customerDTO);
+         orderDTO.setPayment(order.getPayment());
+         orderDTO.setOrderItems(itemDTOList);
 
-		}
+         orderDTOList.add(orderDTO);
+      }
 
-		else {
+      ResponseStructure<List<OrderResponseDTO>> res = new ResponseStructure<>();
 
-			// prevent backward status change
-			if (newStatus.ordinal() < currentStatus.ordinal()) {
-				throw new IllegalStateException("Invalid status transition from " + currentStatus + " to " + newStatus);
-			}
+      res.setStatusCode(HttpStatus.OK.value());
+      res.setMessage("Orders fetched successfully for restaurant");
+      res.setData(orderDTOList);
 
-			// prevent skipping status
-			if (newStatus.ordinal() > currentStatus.ordinal() + 1) {
-				throw new IllegalStateException("Order status must follow sequential flow");
-			}
-		}
+      return new ResponseEntity<ResponseStructure<List<OrderResponseDTO>>>(res, HttpStatus.OK);
+   }
 
-		// single update + save
-		order.setStatus(newStatus);
-		Order updatedOrder = orderDao.saveOrder(order);
+   public ResponseEntity<ResponseStructure<OrderResponseDTO>> updateOrderStatus(Integer orderId, Status newStatus) {
 
-		// DTO mapping
-		CustomerResponseDTO customerDTO = new CustomerResponseDTO();
-		customerDTO.setCustomerId(updatedOrder.getCustomer().getCustomerId());
-		customerDTO.setCustomerName(updatedOrder.getCustomer().getCustomerName());
+      Optional<Order> optional = orderDao.fetchOrderById(orderId);
 
-		List<OrderItemResponseDTO> itemDTOList = new ArrayList<>();
+      if (optional.isEmpty()) {
+         throw new NoRecordFoundException("Order not found with id " + orderId);
+      }
 
-		for (OrderItem item : updatedOrder.getOrderItems()) {
+      Order order = optional.get();
+      Status currentStatus = order.getStatus();
 
-			OrderItemResponseDTO itemDTO = new OrderItemResponseDTO();
+      // Handle cancellation separately
+      if (newStatus == Status.CANCELLED) {
 
-			itemDTO.setOrderItemId(item.getOrderItemId());
-			itemDTO.setItemName(item.getMenuItem().getItemName());
-			itemDTO.setPrice(item.getMenuItem().getPrice());
-			itemDTO.setQuantity(item.getQuantity());
-			itemDTO.setSubTotal(item.getSubTotal());
+         if (currentStatus == Status.PREPARING || currentStatus == Status.DELIVERED) {
+            throw new IllegalStateException("Order cannot be cancelled after preparation started");
+         }
 
-			itemDTOList.add(itemDTO);
-		}
+      }
 
-		OrderResponseDTO orderDTO = new OrderResponseDTO();
+      else {
 
-		orderDTO.setOrderId(updatedOrder.getOrderId());
-		orderDTO.setOrderDateTime(updatedOrder.getOrderDateTime());
-		orderDTO.setStatus(updatedOrder.getStatus());
-		orderDTO.setTotalAmount(updatedOrder.getTotalAmount());
+         // prevent backward status change
+         if (newStatus.ordinal() < currentStatus.ordinal()) {
+            throw new IllegalStateException("Invalid status transition from " + currentStatus + " to " + newStatus);
+         }
 
-		orderDTO.setCustomer(customerDTO);
-		orderDTO.setPayment(updatedOrder.getPayment());
-		orderDTO.setOrderItems(itemDTOList);
+         // prevent skipping status
+         if (newStatus.ordinal() > currentStatus.ordinal() + 1) {
+            throw new IllegalStateException("Order status must follow sequential flow");
+         }
+      }
 
-		ResponseStructure<OrderResponseDTO> res = new ResponseStructure<>();
+      // single update + save
+      order.setStatus(newStatus);
+      Order updatedOrder = orderDao.saveOrder(order);
 
-		res.setStatusCode(HttpStatus.OK.value());
-		res.setMessage("Order status updated successfully");
-		res.setData(orderDTO);
+      // Notify the customer only when the order status has changed.
+      if (currentStatus != newStatus) {
+         Customer customer = updatedOrder.getCustomer();
+         try {
+            emailService.sendOrderStatusEmail(
+                    customer.getEmailId(),
+                    customer.getCustomerName(),
+                    updatedOrder.getOrderId(),
+                    newStatus
+            );
+            logger.info("Order status notification sent for order {}", updatedOrder.getOrderId());
+         } catch (MessagingException e) {
+            logger.error("Order status notification failed for order {}", updatedOrder.getOrderId(), e);
+         }
+      }
 
-		return new ResponseEntity<ResponseStructure<OrderResponseDTO>>(res, HttpStatus.OK);
-	}
+      // DTO mapping
+      CustomerResponseDTO customerDTO = new CustomerResponseDTO();
+      customerDTO.setCustomerId(updatedOrder.getCustomer().getCustomerId());
+      customerDTO.setCustomerName(updatedOrder.getCustomer().getCustomerName());
 
-	public ResponseEntity<ResponseStructure<OrderResponseDTO>> cancelOrder(Integer orderId) {
-		return updateOrderStatus(orderId, Status.CANCELLED);
-	}
+      List<OrderItemResponseDTO> itemDTOList = new ArrayList<>();
 
-	public ResponseEntity<ResponseStructure<OrderResponseDTO>> updatePaymentStatus(Integer orderId, PaymentStatus newPaymentStatus) {
-		Optional<Order> optional = orderDao.fetchOrderById(orderId);
+      for (OrderItem item : updatedOrder.getOrderItems()) {
 
-		if (optional.isEmpty()) {
-			throw new NoRecordFoundException("Order not found with id " + orderId);
-		}
+         OrderItemResponseDTO itemDTO = new OrderItemResponseDTO();
 
-		Order order = optional.get();
+         itemDTO.setOrderItemId(item.getOrderItemId());
+         itemDTO.setItemName(item.getMenuItem().getItemName());
+         itemDTO.setPrice(item.getMenuItem().getPrice());
+         itemDTO.setQuantity(item.getQuantity());
+         itemDTO.setSubTotal(item.getSubTotal());
 
-		Status currentStatus = order.getStatus();
+         itemDTOList.add(itemDTO);
+      }
 
-		if (currentStatus == Status.PREPARING || currentStatus == Status.DELIVERED) {
-			throw new IllegalStateException("Order cannot be cancelled after preparation started");
-		}
+      OrderResponseDTO orderDTO = new OrderResponseDTO();
 
-		 order.getPayment().setPaymentStatus(newPaymentStatus);
+      orderDTO.setOrderId(updatedOrder.getOrderId());
+      orderDTO.setOrderDateTime(updatedOrder.getOrderDateTime());
+      orderDTO.setStatus(updatedOrder.getStatus());
+      orderDTO.setTotalAmount(updatedOrder.getTotalAmount());
 
-		Order updatedOrder = orderDao.saveOrder(order);
+      orderDTO.setCustomer(customerDTO);
+      orderDTO.setPayment(updatedOrder.getPayment());
+      orderDTO.setOrderItems(itemDTOList);
 
-		CustomerResponseDTO customerDTO = new CustomerResponseDTO();
-		customerDTO.setCustomerId(updatedOrder.getCustomer().getCustomerId());
-		customerDTO.setCustomerName(updatedOrder.getCustomer().getCustomerName());
+      ResponseStructure<OrderResponseDTO> res = new ResponseStructure<>();
 
-		List<OrderItemResponseDTO> itemDTOList = new ArrayList<>();
+      res.setStatusCode(HttpStatus.OK.value());
+      res.setMessage("Order status updated successfully");
+      res.setData(orderDTO);
 
-		for (OrderItem item : updatedOrder.getOrderItems()) {
+      return new ResponseEntity<ResponseStructure<OrderResponseDTO>>(res, HttpStatus.OK);
+   }
 
-			OrderItemResponseDTO itemDTO = new OrderItemResponseDTO();
+   public ResponseEntity<ResponseStructure<OrderResponseDTO>> cancelOrder(Integer orderId) {
+      return updateOrderStatus(orderId, Status.CANCELLED);
+   }
 
-			itemDTO.setOrderItemId(item.getOrderItemId());
-			itemDTO.setItemName(item.getMenuItem().getItemName());
-			itemDTO.setPrice(item.getMenuItem().getPrice());
-			itemDTO.setQuantity(item.getQuantity());
-			itemDTO.setSubTotal(item.getSubTotal());
+   public ResponseEntity<ResponseStructure<OrderResponseDTO>> updatePaymentStatus(Integer orderId, PaymentStatus newPaymentStatus) {
+      Optional<Order> optional = orderDao.fetchOrderById(orderId);
 
-			itemDTOList.add(itemDTO);
-		}
+      if (optional.isEmpty()) {
+         throw new NoRecordFoundException("Order not found with id " + orderId);
+      }
 
-		OrderResponseDTO orderDTO = new OrderResponseDTO();
+      Order order = optional.get();
 
-		orderDTO.setOrderId(updatedOrder.getOrderId());
-		orderDTO.setOrderDateTime(updatedOrder.getOrderDateTime());
-		orderDTO.setStatus(updatedOrder.getStatus());
-		orderDTO.setTotalAmount(updatedOrder.getTotalAmount());
+      Status currentStatus = order.getStatus();
 
-		orderDTO.setCustomer(customerDTO);
-		orderDTO.setPayment(updatedOrder.getPayment());
-		orderDTO.setOrderItems(itemDTOList);
+      if (currentStatus == Status.PREPARING || currentStatus == Status.DELIVERED) {
+         throw new IllegalStateException("Order cannot be cancelled after preparation started");
+      }
 
-		ResponseStructure<OrderResponseDTO> res = new ResponseStructure<>();
 
-		res.setStatusCode(HttpStatus.OK.value());
-		res.setMessage("Order cancelled successfully");
-		res.setData(orderDTO);
+      order.getPayment().setPaymentStatus(newPaymentStatus);
 
-		return new ResponseEntity<ResponseStructure<OrderResponseDTO>>(res, HttpStatus.OK);
-	}
+      Order updatedOrder = orderDao.saveOrder(order);
+
+      CustomerResponseDTO customerDTO = new CustomerResponseDTO();
+      customerDTO.setCustomerId(updatedOrder.getCustomer().getCustomerId());
+      customerDTO.setCustomerName(updatedOrder.getCustomer().getCustomerName());
+
+      List<OrderItemResponseDTO> itemDTOList = new ArrayList<>();
+
+      for (OrderItem item : updatedOrder.getOrderItems()) {
+
+         OrderItemResponseDTO itemDTO = new OrderItemResponseDTO();
+
+         itemDTO.setOrderItemId(item.getOrderItemId());
+         itemDTO.setItemName(item.getMenuItem().getItemName());
+         itemDTO.setPrice(item.getMenuItem().getPrice());
+         itemDTO.setQuantity(item.getQuantity());
+         itemDTO.setSubTotal(item.getSubTotal());
+
+         itemDTOList.add(itemDTO);
+      }
+
+      OrderResponseDTO orderDTO = new OrderResponseDTO();
+
+      orderDTO.setOrderId(updatedOrder.getOrderId());
+      orderDTO.setOrderDateTime(updatedOrder.getOrderDateTime());
+      orderDTO.setStatus(updatedOrder.getStatus());
+      orderDTO.setTotalAmount(updatedOrder.getTotalAmount());
+
+      orderDTO.setCustomer(customerDTO);
+      orderDTO.setPayment(updatedOrder.getPayment());
+      orderDTO.setOrderItems(itemDTOList);
+
+      ResponseStructure<OrderResponseDTO> res = new ResponseStructure<>();
+
+      res.setStatusCode(HttpStatus.OK.value());
+      res.setMessage("Order cancelled successfully");
+      res.setData(orderDTO);
+
+      return new ResponseEntity<ResponseStructure<OrderResponseDTO>>(res, HttpStatus.OK);
+   }
 }
