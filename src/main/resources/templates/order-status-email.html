@@ -1,1 +1,31 @@
 
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Order Status Update</title>
+</head>
+
+<body style="margin:0;padding:24px;background:#f5f5f5;font-family:Arial,sans-serif;">
+    <div style="max-width:600px;margin:auto;padding:28px;background:white;border-radius:10px;">
+        <h2 style="color:#e66b00;">Food Delivery App</h2>
+        <h3>Hello <span th:text="${customerName}">Customer</span>!</h3>
+        <p>Here is an update about your order.</p>
+        <div style="background:#fff3e6;padding:16px;border-radius:8px;">
+            <p><strong>Order ID:</strong> #<span th:text="${orderId}">123</span></p>
+            <p><strong>Status:</strong> <strong th:text="${status}">PLACED</strong></p>
+        </div>
+        <p th:if="${status == 'PENDING_PAYMENT'}">Your order is awaiting payment.</p>
+        <p th:if="${status == 'PLACED'}">Your order has been placed successfully!</p>
+        <p th:if="${status == 'CONFIRMED'}">Your order has been confirmed!</p>
+        <p th:if="${status == 'PREPARING'}">Your food is being prepared.</p>
+        <p th:if="${status == 'DELIVERED'}">Your order has been delivered. Enjoy your meal!</p>
+        <p th:if="${status == 'CANCELLED'}">Your order has been cancelled.</p>
+        <p>Thank you for choosing Food Delivery App!</p>
+        <hr>
+        <p style="font-size:12px;color:#777;">This is an automated email notification.</p>
+    </div>
+</body>
+
+</html>
